@@ -1,0 +1,29 @@
+# Guía Paso a Paso: Subir Ecovia a GitHub (Primer Paso)
+
+Para que el código que exportes de Stitch cobre vida, primero debemos guardarlo en un "almacén" digital llamado GitHub. Sigue estos pasos:
+
+## 1. Preparación en Stitch
+Antes de ir a GitHub, asegúrate de tener el código:
+- Haz clic en el botón **"Export"** (en la barra superior, junto a tu logo).
+- Selecciona **"Download Project"**. Esto te dará un archivo `.zip` con todos los archivos HTML/CSS/JS de Ecovia.
+- Descomprime esa carpeta en tu ordenador.
+
+## 2. Crear tu cuenta en GitHub
+- Ve a [github.com](https://github.com) y crea una cuenta gratuita si aún no la tienes.
+
+## 3. Crear el Repositorio (Tu Almacén)
+- Una vez dentro, busca el botón **"+"** en la esquina superior derecha y selecciona **"New repository"**.
+- **Repository name**: Ponle `ecovia-proyecto`.
+- **Public/Private**: Selecciona **Public** (esto es necesario para que luego Netlify o GitHub Pages puedan "leer" tu código gratis).
+- Haz clic en el botón verde **"Create repository"**.
+
+## 4. Subir los Archivos
+- En la pantalla que aparece, busca el enlace que dice **"uploading an existing file"**.
+- Arrastra todos los archivos que descomprimiste de Stitch (index.html, carpetas de css/js, etc.) directamente al recuadro gris.
+- Una vez cargados, baja hasta el botón verde que dice **"Commit changes"** y púlsalo.
+
+---
+**¿Qué hemos logrado?**
+Ahora el "ADN" de Ecovia está seguro en la nube. El siguiente paso será conectar este almacén con **Netlify** para generar la URL que podrás abrir en tu móvil.
+
+**¿Deseas que prepare la guía del Segundo Paso (Netlify) o prefieres que te ayude a revisar el contenido del archivo index.html antes de subirlo?**

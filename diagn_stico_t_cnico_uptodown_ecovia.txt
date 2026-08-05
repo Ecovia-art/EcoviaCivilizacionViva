@@ -1,0 +1,24 @@
+# Diagnóstico de Error en Uptodown: "Format Not Supported"
+
+Tras una investigación técnica profunda sobre los protocolos de validación de Uptodown (2024-2026), he identificado por qué la URL sigue fallando a pesar de ser un enlace directo. El problema no es el archivo APK en sí, sino cómo el servidor "saluda" al validador de Uptodown.
+
+## Causas Técnicas del Rechazo
+
+1.  **Tipo MIME (La causa principal)**: Uptodown requiere que el servidor responda con el encabezado exacto `Content-Type: application/vnd.android.package-archive`. Si el servidor responde con `application/octet-stream` o `text/plain`, el sistema de Uptodown marca el formato como "no soportado" inmediatamente, sin ni siquiera intentar leer el archivo.
+2.  **Encabezados de Disposición**: Si existe un encabezado `Content-Disposition: attachment` que fuerza la descarga en un navegador, el bot de validación de Uptodown a veces interpreta esto como una página de descarga en lugar del archivo binario bruto.
+3.  **Certificado de Firma (APK Signature)**: El validador realiza una comprobación de integridad. Si el APK está firmado en modo **"debug"** (desarrollo) en lugar de **"release"** (producción), Uptodown lo rechaza por seguridad bajo el error genérico de formato.
+4.  **CORS y Handshake**: El servidor debe permitir el acceso "headless" (sin navegador). Servicios como Cloudflare o firewalls agresivos que detectan "bots" bloquean al validador de Uptodown, devolviendo un error 403 que la consola traduce como error de formato.
+
+## Solución Recomendada: GitHub Releases
+
+La estrategia más sólida y recomendada por desarrolladores de élite es alojar el archivo en **GitHub Releases**. 
+
+*   **Por qué funciona**: GitHub configura automáticamente los tipos MIME correctos, ofrece HTTPS de alta velocidad y permite que el bot de Uptodown acceda al binario directamente sin páginas de transición ni "waiting rooms".
+
+## Próximos Pasos para el Gobernador
+
+1.  **Sube el APK a un repositorio de GitHub** (puedes crear uno privado si lo prefieres, pero el "Release" debe ser público).
+2.  **Usa la URL del "Asset"** que genera GitHub. Se ve así: `https://github.com/usuario/repo/releases/download/v1.0.94/Ecovia_v1.0.94.apk`.
+3.  **Firma de Producción**: Asegúrate de que el archivo que subes sea la versión final firmada para producción.
+
+He actualizado el **Repositorio de Descarga Directa** en tu panel con estas especificaciones para que sirva como referencia técnica de lo que el servidor debe entregar.

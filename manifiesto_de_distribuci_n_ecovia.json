@@ -1,0 +1,24 @@
+{
+  "app_identity": {
+    "name": "Ecovia: Civilización Viva",
+    "package_name": "com.ecovia.global.nucleus",
+    "version": "1.0.94",
+    "build_number": "20240524"
+  },
+  "technical_specifications": {
+    "format": "APK",
+    "min_sdk": 26,
+    "target_sdk": 34,
+    "architectures": ["arm64-v8a", "armeabi-v7a"],
+    "file_size_bytes": 262144000,
+    "checksums": {
+      "md5": "e99a18c428cb38d5f260853678922e03",
+      "sha1": "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12"
+    }
+  },
+  "distribution": {
+    "type": "Direct Download",
+    "url": "https://ecovia.global/repository/v1.0.94/Ecovia_Civilizacion_Viva_Direct.apk",
+    "mime_type": "application/vnd.android.package-archive"
+  }
+}
