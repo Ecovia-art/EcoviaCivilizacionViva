@@ -130,6 +130,33 @@
         requestAnimationFrame(drawGlobe);
       }
       drawGlobe();
+      window.actualizarVisualesEcovia = function(datosEstado) {
+    // Si la sostenibilidad baja, cambiamos el color del globo a un tono más de alerta
+    if (datosEstado.sostenibilidad < 50) {
+        // Tono crítico
+        if (typeof ctx !== 'undefined') {
+            ctx.strokeStyle = 'rgba(255, 100, 100, 0.4)'; 
+        }
+    } else {
+        // Tono ecológico original
+        if (typeof ctx !== 'undefined') {
+            ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)';
+        }
+    }
+};
     </script>
+    function aplicarDecisionJugador(tipoRecurso, valorNuevo) {
+    const estadoActual = {
+        sostenibilidad: tipoRecurso === 'sostenibilidad' ? valorNuevo : 75,
+        energia: tipoRecurso === 'energia' ? valorNuevo : 90
+    };
+
+    // Llamamos a la función que conecta con el mapa 3D
+    if (window.actualizarVisualesEcovia) {
+        window.actualizarVisualesEcovia(estadoActual);
+    }
+
+    console.log("Decisión aplicada y mapa sincronizado:", estadoActual);
+}
   </body>
 </html>
