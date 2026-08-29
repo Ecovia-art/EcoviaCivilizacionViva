@@ -82,5 +82,49 @@
     </div>
 
     <script src='tienda.js'></script>
+
+    <script>
+        const traducciones = {
+            'ES': { partida: 'Iniciar Partida', continuar: 'Continuar', ajustes: 'Ajustes', biosfera: 'NÚCLEO: BIOSFERA VIVA', cuantica: 'RED CUÁNTICA CENTRAL' },
+            'EUS': { partida: 'Partida Hasi', continuar: 'Jarraitu', ajustes: 'Ezarpenak', biosfera: 'NUKLEOA: BIZI BIOSFERA', cuantica: 'SARE KUANTIKO NAGusia' },
+            'EN': { partida: 'Start Game', continuar: 'Continue', ajustes: 'Settings', biosfera: 'CORE: LIVING BIOSPHERE', cuantica: 'CENTRAL QUANTUM NETWORK' },
+            'CAT': { partida: 'Iniciar Partida', continuar: 'Continuar', ajustes: 'Ajustaments', biosfera: 'NUCLEU: BIOSFERA VIVA', cuantica: 'XARXA QUÀNTICA CENTRAL' },
+            'GLG': { partida: 'Iniciar Partida', continuar: 'Continuar', ajustes: 'Axustes', biosfera: 'NÚCLEO: BIOSFERA VIVA', cuantica: 'REDE CUÁNTICA CENTRAL' },
+            'VAL': { partida: 'Iniciar Partida', continuar: ' Continuar', ajustes: 'Ajusts', biosfera: 'NUCLEU: BIOSFERA VIVA', cuantica: 'XARXA QUÀNTICA CENTRAL' },
+            'DE': { partida: 'Spiel Starten', continuar: 'Fortsetzen', ajustes: 'Einstellungen', biosfera: 'KERN: LEBENDE BIOSPHÄRE', cuantica: 'ZENTRALES QUANTENNETZWERK' }
+        };
+
+        function cambiarIdioma(lang, btnElement) {
+            // Actualizar botones activos
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            // Traducir textos principales si existen en el diccionario
+            const t = traducciones[lang];
+
+            const btnPartida = document.querySelector('button[onclick*="gestion.html"]');
+            if (btnPartida) btnPartida.innerText = t.partida;
+
+            const botonesMenu = document.querySelectorAll('.main-menu-card .menu-button');
+            if (botonesMenu.length >= 3) {
+                botonesMenu[0].innerText = t.partida;
+                botonesMenu[1].innerText = t.continuar;
+                botonesMenu[2].innerText = t.ajustes;
+            }
+
+            const labels = document.querySelectorAll('.orb-label');
+            if (labels.length >= 2) {
+                labels[0].innerText = t.biosfera;
+                labels[1].innerText = t.cuantica;
+            }
+        }
+
+        // Asignar eventos a los botones de idioma automáticamente
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                cambiarIdioma(e.target.innerText.trim(), e.target);
+            });
+        });
+    </script>
 </body>
 </html>
