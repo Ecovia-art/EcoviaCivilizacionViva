@@ -1,0 +1,43 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [2.287, 41.608],
+            [2.289, 41.608],
+            [2.289, 41.610],
+            [2.287, 41.610],
+            [2.287, 41.608]
+          ]
+        ]
+      },
+      "properties": {
+        "tipo": "edificio",
+        "altura": 35.5
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [2.290, 41.611],
+            [2.292, 41.611],
+            [2.292, 41.613],
+            [2.290, 41.613],
+            [2.290, 41.611]
+          ]
+        ]
+      },
+      "properties": {
+        "tipo": "edificio",
+        "altura": 22.0
+      }
+    }
+  ]
+}

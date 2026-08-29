@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecovia: Civilización Viva - Cargando</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #12181b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Contenedor central de la carga */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            z-index: 2;
+        }
+
+        /* Logotipo animado */
+        .loading-logo {
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            margin-bottom: 25px;
+            opacity: 0.85;
+            filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
+            animation: pulseLogo 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseLogo {
+            0% { transform: scale(0.98); opacity: 0.7; }
+            50% { transform: scale(1.02); opacity: 1; }
+            100% { transform: scale(0.98); opacity: 0.7; }
+        }
+
+        .loading-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #d4af37;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        /* Texto de estado dinámico */
+        .loading-status {
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+            text-align: center;
+            letter-spacing: 1px;
+            height: 20px;
+        }
+
+        /* Barra de progreso en Oro 24K */
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(18, 24, 27, 0.9);
+            border: 1px solid #d4af37;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
+            transition: width 0.1s linear;
+        }
+
+        /* Porcentaje numérico */
+        .progress-percentage {
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: #2ecc71;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loading-container">
+        <!-- Logo de carga -->
+        <img src="images/logo.jpg" alt="Ecovia Logo" class="loading-logo">
+        
+        <div class="loading-title">INICIALIZANDO RED</div>
+        <div id="status-text" class="loading-status">Estableciendo conexión con el núcleo...</div>
+
+        <!-- Barra de progreso -->
+        <div class="progress-bar-container">
+            <div id="progress-fill" class="progress-bar-fill"></div>
+        </div>
+        
+        <div id="progress-num" class="progress-percentage">0%</div>
+    </div>
+
+    <script>
+        const messages = [
+            "Estableciendo conexión con el núcleo...",
+            "Calibrando biomas y zonas residenciales...",
+            "Sincronizando redes de energía y comercio...",
+            "Verificando directivas del Gobernador...",
+            "Civilización lista. Desplegando interfaz..."
+        ];
+
+        let progress = 0;
+        const fill = document.getElementById('progress-fill');
+        const num = document.getElementById('progress-num');
+        const statusText = document.getElementById('status-text');
+
+        const interval = setInterval(() => {
+            progress += Math.floor(Math.random() * 3) + 1;
+            
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                statusText.textContent = "¡Bienvenido de nuevo, Gobernador!";
+                
+                // Redirección automática a la pantalla de juego principal (game.html)
+                setTimeout(() => { 
+                    window.location.href = 'game.html'; 
+                }, 800);
+            }
+
+            // Actualización de mensajes según el porcentaje
+            if (progress > 75) statusText.textContent = messages[4];
+            else if (progress > 55) statusText.textContent = messages[3];
+            else if (progress > 35) statusText.textContent = messages[2];
+            else if (progress > 15) statusText.textContent = messages[1];
+
+            fill.style.width = progress + '%';
+            num.textContent = progress + '%';
+        }, 40);
+    </script>
+</body>
+</html>

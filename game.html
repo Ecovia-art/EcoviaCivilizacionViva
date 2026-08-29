@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecovía Civilización Viva - Vista 3D</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #0d1117;
+            font-family: Arial, sans-serif;
+        }
+        #canvas-container {
+            width: 100%;
+            height: 100vh;
+        }
+        #info { 
+            position: absolute; 
+            top: 10px; 
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4ade80; 
+            font-size: 14px; 
+            letter-spacing: 1px; 
+            pointer-events: none; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.3);
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #4ade80;
+            font-size: 18px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="info">🌍 Complejo Bio-Integrado Gaia - Vista 3D Activa</div>
+    <div id="loading">Cargando escena 3D...</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Esperar a que Three.js cargue
+        if (typeof THREE === 'undefined') {
+            console.error('Three.js no cargó correctamente');
+            document.getElementById('loading').textContent = '⚠️ Error: Three.js no cargó';
+        } else {
+            console.log('Three.js cargado correctamente');
+            
+            const container = document.getElementById('canvas-container');
+            const loadingDiv = document.getElementById('loading');
+            
+            try {
+                // Crear escena
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x0f141d);
+                scene.fog = new THREE.FogExp2(0x0f141d, 0.025);
+
+                // Cámara
+                const camera = new THREE.PerspectiveCamera(
+                    45, 
+                    window.innerWidth / window.innerHeight, 
+                    0.1, 
+                    2000
+                );
+                camera.position.set(0, 15, 30);
+                camera.lookAt(0, 2, 0);
+
+                // Renderer
+                const renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                container.appendChild(renderer.domElement);
+
+                // Iluminación
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+                scene.add(ambientLight);
+
+                const sunLight = new THREE.DirectionalLight(0x4ade80, 1.2);
+                sunLight.position.set(20, 30, 20);
+                sunLight.castShadow = true;
+                scene.add(sunLight);
+
+                const subLight = new THREE.DirectionalLight(0x38bdf8, 0.6);
+                subLight.position.set(-20, 10, -20);
+                scene.add(subLight);
+
+                // Terreno base
+                const gridHelper = new THREE.GridHelper(50, 50, 0x166534, 0x1e293b);
+                gridHelper.position.y = -0.5;
+                scene.add(gridHelper);
+
+                const groundGeo = new THREE.PlaneGeometry(50, 50);
+                const groundMat = new THREE.MeshStandardMaterial({ color: 0x0a0e12, roughness: 0.8 });
+                const ground = new THREE.Mesh(groundGeo, groundMat);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = -0.5;
+                scene.add(ground);
+
+                // Grupo del complejo eco
+                const ecoComplex = new THREE.Group();
+
+                // Torre central
+                const coreGeo = new THREE.CylinderGeometry(1.2, 1.8, 5, 12);
+                const coreMat = new THREE.MeshStandardMaterial({ 
+                    color: 0x15803d, 
+                    roughness: 0.3, 
+                    metalness: 0.4 
+                });
+                const coreTower = new THREE.Mesh(coreGeo, coreMat);
+                coreTower.position.y = 2.5;
+                coreTower.castShadow = true;
+                ecoComplex.add(coreTower);
+
+                // Cúpula
+                const domeGeo = new THREE.SphereGeometry(1.4, 16, 16);
+                const domeMat = new THREE.MeshPhysicalMaterial({ 
+                    color: 0x38bdf8, 
+                    roughness: 0.2, 
+                    transmission: 0.6, 
+                    transparent: true, 
+                    opacity: 0.7 
+                });
+                const dome = new THREE.Mesh(domeGeo, domeMat);
+                dome.position.y = 5.2;
+                ecoComplex.add(dome);
+
+                // Módulos satélite
+                const moduleMat = new THREE.MeshStandardMaterial({ 
+                    color: 0x16a34a, 
+                    roughness: 0.4 
+                });
+                const ringCount = 5;
+                const ringRadius = 4.5;
+
+                for (let i = 0; i < ringCount; i++) {
+                    const angle = (i / ringCount) * Math.PI * 2;
+                    const modGeo = new THREE.DodecahedronGeometry(0.9);
+                    const moduleMesh = new THREE.Mesh(modGeo, moduleMat);
+                    
+                    const x = Math.cos(angle) * ringRadius;
+                    const z = Math.sin(angle) * ringRadius;
+                    moduleMesh.position.set(x, 1.0, z);
+                    moduleMesh.castShadow = true;
+                    
+                    ecoComplex.add(moduleMesh);
+                }
+
+                scene.add(ecoComplex);
+
+                const cityDecor = new THREE.Group();
+                scene.add(cityDecor);
+
+                function createRoad(x, z, width, depth, rotation = 0) {
+                    const road = new THREE.Mesh(
+                        new THREE.BoxGeometry(width, 0.08, depth),
+                        new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.95 })
+                    );
+                    road.position.set(x, 0.04, z);
+                    road.rotation.y = rotation;
+                    road.receiveShadow = true;
+                    cityDecor.add(road);
+
+                    const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x485563, roughness: 0.9 });
+                    const leftSide = new THREE.Mesh(new THREE.BoxGeometry(width + 0.6, 0.08, 0.4), sidewalkMat);
+                    leftSide.position.set(x, 0.09, z - depth / 2 + 0.2);
+                    leftSide.rotation.y = rotation;
+                    cityDecor.add(leftSide);
+
+                    const rightSide = new THREE.Mesh(new THREE.BoxGeometry(width + 0.6, 0.08, 0.4), sidewalkMat);
+                    rightSide.position.set(x, 0.09, z + depth / 2 - 0.2);
+                    rightSide.rotation.y = rotation;
+                    cityDecor.add(rightSide);
+
+                    const lineMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, emissive: 0x444444 });
+                    const laneCount = Math.max(1, Math.floor(width / 2.2));
+                    for (let i = 0; i < laneCount; i++) {
+                        const mark = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.8), lineMat);
+                        mark.position.set(x - width / 2 + 1 + i * 1.8, 0.12, z);
+                        mark.rotation.y = rotation;
+                        cityDecor.add(mark);
+                    }
+                }
+
+                function createTree(x, z) {
+                    const trunk = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.25, 0.35, 3, 6),
+                        new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: 0.8 })
+                    );
+                    trunk.position.set(x, 1.5, z);
+                    trunk.castShadow = true;
+                    cityDecor.add(trunk);
+
+                    for (let layer = 0; layer < 3; layer++) {
+                        const foliage = new THREE.Mesh(
+                            new THREE.SphereGeometry(1.2 - layer * 0.2, 10, 10),
+                            new THREE.MeshStandardMaterial({ 
+                                color: 0x22c55e,
+                                roughness: 0.6,
+                                emissive: 0x0f5f2f
+                            })
+                        );
+                        foliage.position.set(x, 3.5 + layer * 0.8, z);
+                        foliage.castShadow = true;
+                        cityDecor.add(foliage);
+                    }
+                }
+
+                function createStreetLamp(x, z) {
+                    const lamp = new THREE.Group();
+                    const pole = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.08, 0.1, 2.8, 6),
+                        new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.7, roughness: 0.3 })
+                    );
+                    pole.position.y = 1.4;
+                    lamp.add(pole);
+
+                    const arm = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.8, 0.08, 0.08),
+                        new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.7, roughness: 0.3 })
+                    );
+                    arm.position.set(0.45, 2.5, 0);
+                    lamp.add(arm);
+
+                    const light = new THREE.PointLight(0xfef3c7, 1.3, 8, 2);
+                    light.position.set(0.95, 2.45, 0);
+                    lamp.add(light);
+
+                    const bulb = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.12, 12, 12),
+                        new THREE.MeshStandardMaterial({ color: 0xfef3c7, emissive: 0xfbbf24, emissiveIntensity: 1.8 })
+                    );
+                    bulb.position.set(0.95, 2.45, 0);
+                    lamp.add(bulb);
+
+                    lamp.position.set(x, 0, z);
+                    lamp.castShadow = true;
+                    cityDecor.add(lamp);
+                }
+
+                function createFlower(x, z, color = 0xff4d8d) {
+                    const flower = new THREE.Group();
+                    const stem = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.03, 0.05, 0.5, 6),
+                        new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.8 })
+                    );
+                    stem.position.y = 0.25;
+                    flower.add(stem);
+
+                    const petals = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.16, 8, 8),
+                        new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 0.25 })
+                    );
+                    petals.scale.set(1.6, 0.7, 1.6);
+                    petals.position.y = 0.7;
+                    flower.add(petals);
+
+                    const center = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.08, 8, 8),
+                        new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xfacc15, emissiveIntensity: 0.5 })
+                    );
+                    center.position.y = 0.7;
+                    flower.add(center);
+
+                    flower.position.set(x, 0, z);
+                    cityDecor.add(flower);
+                }
+
+                function createPerson(x, z, tint = 0x38bdf8) {
+                    const person = new THREE.Group();
+                    const body = new THREE.Mesh(
+                        new THREE.CylinderGeometry(0.2, 0.24, 0.8, 8),
+                        new THREE.MeshStandardMaterial({ color: tint, roughness: 0.6 })
+                    );
+                    body.position.y = 0.8;
+                    person.add(body);
+
+                    const head = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.18, 10, 10),
+                        new THREE.MeshStandardMaterial({ color: 0xf1c27d, roughness: 0.7 })
+                    );
+                    head.position.y = 1.45;
+                    person.add(head);
+
+                    const leftLeg = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.1, 0.6, 0.12),
+                        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7 })
+                    );
+                    leftLeg.position.set(-0.08, 0.25, 0);
+                    person.add(leftLeg);
+
+                    const rightLeg = leftLeg.clone();
+                    rightLeg.position.x = 0.08;
+                    person.add(rightLeg);
+
+                    person.position.set(x, 0, z);
+                    cityDecor.add(person);
+                }
+
+                // Calles, árboles, farolas, flores y gente
+                const roadSegments = [
+                    { x: 0, z: 0, width: 18, depth: 4, rotation: 0 },
+                    { x: 0, z: 12, width: 18, depth: 4, rotation: 0 },
+                    { x: 0, z: -12, width: 18, depth: 4, rotation: 0 },
+                    { x: -12, z: 0, width: 4, depth: 18, rotation: Math.PI / 2 },
+                    { x: 12, z: 0, width: 4, depth: 18, rotation: Math.PI / 2 },
+                    { x: -3, z: 6, width: 10, depth: 3, rotation: 0 },
+                    { x: 3, z: -6, width: 10, depth: 3, rotation: 0 }
+                ];
+                roadSegments.forEach(({ x, z, width, depth, rotation }) => createRoad(x, z, width, depth, rotation));
+
+                const trees = [
+                    [-10, -10], [-10, 10], [10, -10], [10, 10],
+                    [-15, 0], [15, 0], [0, -15], [0, 15],
+                    [-12, -8], [-12, 8], [12, -8], [12, 8],
+                    [-6, 13], [6, 13], [-6, -13], [6, -13],
+                    [-2, 8], [2, 8], [-2, -8], [2, -8]
+                ];
+                trees.forEach(pos => createTree(pos[0], pos[1]));
+
+                const lampPositions = [
+                    [-8, -1], [-4, -1], [0, -1], [4, -1], [8, -1],
+                    [-8, 1], [-4, 1], [0, 1], [4, 1], [8, 1],
+                    [-1, 8], [1, 8], [-1, -8], [1, -8],
+                    [8, 8], [-8, 8], [8, -8], [-8, -8]
+                ];
+                lampPositions.forEach(([x, z]) => createStreetLamp(x, z));
+
+                for (let x = -7; x <= 7; x += 2) {
+                    for (let z = -7; z <= 7; z += 2) {
+                        if (Math.abs(x) < 3 && Math.abs(z) < 3) continue;
+                        if (Math.random() > 0.65) createFlower(x + (Math.random() - 0.5) * 0.3, z + (Math.random() - 0.5) * 0.3, Math.random() > 0.5 ? 0xff4d8d : 0x8b5cf6);
+                    }
+                }
+
+                const people = [
+                    [-3, 1, 0x38bdf8], [3, 1, 0xf59e0b], [0, 2, 0x34d399],
+                    [-6, 12, 0xf472b6], [6, -12, 0x60a5fa], [9, 0, 0xfda4af]
+                ];
+                people.forEach(([x, z, tint]) => createPerson(x, z, tint));
+
+                // RÍO
+                const riverCurve = new THREE.CatmullRomCurve3([
+                    new THREE.Vector3(-5, 0.1, -15),
+                    new THREE.Vector3(-3, 0.1, -10),
+                    new THREE.Vector3(0, 0.1, -5),
+                    new THREE.Vector3(3, 0.1, 0),
+                    new THREE.Vector3(2, 0.1, 5),
+                    new THREE.Vector3(-2, 0.1, 10),
+                    new THREE.Vector3(-4, 0.1, 15)
+                ]);
+                
+                const riverGeo = new THREE.TubeGeometry(riverCurve, 20, 0.8, 6);
+                const riverMat = new THREE.MeshStandardMaterial({ 
+                    color: 0x0ea5e9,
+                    roughness: 0.2,
+                    metalness: 0.4,
+                    emissive: 0x0369a1
+                });
+                const river = new THREE.Mesh(riverGeo, riverMat);
+                scene.add(river);
+
+                // PUENTES
+                function createBridge(x, z, rotY) {
+                    const group = new THREE.Group();
+
+                    // Pilares
+                    for (let i = -1.5; i <= 1.5; i += 3) {
+                        const pillar = new THREE.Mesh(
+                            new THREE.CylinderGeometry(0.25, 0.3, 2, 6),
+                            new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7 })
+                        );
+                        pillar.position.set(i, 0.5, 0);
+                        pillar.castShadow = true;
+                        group.add(pillar);
+                    }
+
+                    // Tablero
+                    const deck = new THREE.Mesh(
+                        new THREE.BoxGeometry(3.5, 0.3, 1.2),
+                        new THREE.MeshStandardMaterial({ 
+                            color: 0x84cc16,
+                            roughness: 0.5,
+                            emissive: 0x4b7c0f
+                        })
+                    );
+                    deck.position.y = 1.2;
+                    deck.castShadow = true;
+                    group.add(deck);
+
+                    // Barandillas
+                    for (let i = 0; i < 4; i++) {
+                        const rail = new THREE.Mesh(
+                            new THREE.CylinderGeometry(0.1, 0.1, 1, 4),
+                            new THREE.MeshStandardMaterial({ color: 0x16a34a })
+                        );
+                        rail.position.set(-1.5 + i, 1.8, 0.7);
+                        rail.rotation.z = Math.PI / 4;
+                        group.add(rail);
+                    }
+
+                    group.position.set(x, 0.2, z);
+                    group.rotation.y = rotY;
+                    scene.add(group);
+                }
+
+                createBridge(-12, 5, 0);
+                createBridge(12, -5, Math.PI / 2);
+                createBridge(0, 14, Math.PI / 4);
+
+                // Animación
+                const clock = new THREE.Clock();
+                function animate() {
+                    requestAnimationFrame(animate);
+                    const elapsedTime = clock.getElapsedTime();
+                    
+                    ecoComplex.rotation.y = elapsedTime * 0.1;
+                    ecoComplex.position.y = Math.sin(elapsedTime * 1.2) * 0.2;
+
+                    renderer.render(scene, camera);
+                }
+                animate();
+
+                // Responsivo
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+
+                // Ocultar loading
+                loadingDiv.style.display = 'none';
+                console.log('✅ Escena 3D cargada correctamente');
+
+            } catch (error) {
+                console.error('Error en la escena 3D:', error);
+                loadingDiv.textContent = '❌ Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ecovia: Prototipo de Gestión</title>
+    <style>
+        body { margin: 0; background: #0f172a; color: #e2e8f0; font-family: sans-serif; overflow: hidden; }
+        #ui { position: absolute; top: 20px; left: 20px; background: rgba(15, 23, 42, 0.9); padding: 20px; border: 1px solid #334155; border-radius: 8px; }
+        canvas { display: block; }
+        button { display: block; width: 100%; margin-bottom: 5px; padding: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <h3>Ecovia: Gestión</h3>
+        <p>Dinero: $50,000 | Población: 0</p>
+        <button onclick="currentTool='ROAD'">Carreteras</button>
+        <button onclick="currentTool='HOUSE'">Residencial</button>
+        <button onclick="currentTool='FACTORY'">Industria</button>
+    </div>
+    <canvas id="game"></canvas>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        let currentTool = 'ROAD';
+        const gridSize = 20;
+        const tileSize = 40;
+        const grid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+
+        function draw() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let x = 0; x < gridSize; x++) {
+                for (let y = 0; y < gridSize; y++) {
+                    // Conversión a isométrica
+                    let isoX = (x - y) * (tileSize / 2) + canvas.width / 2;
+                    let isoY = (x + y) * (tileSize / 4) + 150;
+
+                    ctx.strokeStyle = '#334155';
+                    ctx.beginPath();
+                    ctx.moveTo(isoX, isoY);
+                    ctx.lineTo(isoX + tileSize/2, isoY + tileSize/4);
+                    ctx.lineTo(isoX, isoY + tileSize/2);
+                    ctx.lineTo(isoX - tileSize/2, isoY + tileSize/4);
+                    ctx.closePath();
+                    ctx.stroke();
+
+                    // Dibujar contenido
+                    if(grid[x][y] === 1) ctx.fillStyle = '#64748b'; // Carretera
+                    else if(grid[x][y] === 2) ctx.fillStyle = '#10b981'; // Casas
+                    else continue;
+                    
+                    ctx.fill();
+                }
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            // Lógica simplificada de detección de celda
+            let rect = canvas.getBoundingClientRect();
+            let mouseX = e.clientX - rect.left - canvas.width/2;
+            let mouseY = e.clientY - rect.top - 150;
+            
+            // Transformación inversa isométrica básica
+            let gridX = Math.floor((mouseX / (tileSize/2) + mouseY / (tileSize/4)) / 2);
+            let gridY = Math.floor((mouseY / (tileSize/4) - mouseX / (tileSize/2)) / 2);
+            
+            if(gridX >= 0 && gridX < gridSize && gridY >= 0 && gridY < gridSize) {
+                grid[gridX][gridY] = (currentTool === 'ROAD') ? 1 : 2;
+                draw();
+            }
+        });
+
+        window.onresize = draw;
+        draw();
+    </script>
+</body>
+</html>

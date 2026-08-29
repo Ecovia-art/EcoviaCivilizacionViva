@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Builder Pro - Gestor de Ciudades Avanzado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* SIDEBAR - MENÚ LATERAL */
+        #sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0f3460 0%, #16213e 100%);
+            border-right: 3px solid #e94560;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .header-panel {
+            padding: 15px;
+            background: linear-gradient(90deg, #e94560 0%, #c7184d 100%);
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            border-bottom: 2px solid #a01540;
+        }
+
+        /* INDICADORES */
+        .indicators {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #e94560;
+        }
+
+        .indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 12px;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .indicator:last-child {
+            border-bottom: none;
+        }
+
+        .indicator-label {
+            font-weight: 600;
+            color: #a8dadc;
+        }
+
+        .indicator-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #f1faee;
+        }
+
+        .money { color: #90ee90; }
+        .population { color: #87ceeb; }
+        .happiness { color: #ffd700; }
+        .energy { color: #ff6b6b; }
+
+        /* CATEGORÍAS DE CONSTRUCCIÓN */
+        .build-categories {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .category {
+            margin-bottom: 12px;
+        }
+
+        .category-title {
+            background: rgba(233, 69, 96, 0.7);
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-left: 3px solid #f1faee;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-title:hover {
+            background: rgba(233, 69, 96, 1);
+            transform: translateX(3px);
+        }
+
+        .building-btn {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 5px;
+            background: rgba(15, 52, 96, 0.6);
+            border: 2px solid #0f3460;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .building-btn:hover {
+            background: rgba(233, 69, 96, 0.3);
+            border-color: #e94560;
+            transform: translateX(3px);
+        }
+
+        .building-btn.active {
+            background: rgba(233, 69, 96, 0.8);
+            border-color: #f1faee;
+            box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+
+        .building-cost {
+            font-size: 10px;
+            color: #90ee90;
+            font-weight: bold;
+        }
+
+        /* CANVAS AREA */
+        #gameArea {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%);
+            position: relative;
+        }
+
+        #gameCanvas {
+            flex: 1;
+            display: block;
+            cursor: crosshair;
+            background: radial-gradient(circle at center, #1a3a52 0%, #0f1b2e 100%);
+        }
+
+        /* INFO PANEL - PIE DE PANTALLA */
+        .info-panel {
+            height: 60px;
+            background: rgba(0, 0, 0, 0.6);
+            border-top: 2px solid #e94560;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .info-item {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        /* NOTIFICACIONES */
+        .notification {
+            position: fixed;
+            bottom: 80px;
+            left: 300px;
+            right: 20px;
+            padding: 12px 15px;
+            background: rgba(233, 69, 96, 0.9);
+            border-left: 4px solid #f1faee;
+            color: white;
+            font-size: 12px;
+            border-radius: 3px;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+            max-width: 500px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* TOOLTIP DE CONSTRUCCIÓN */
+        #buildTooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: #f1faee;
+            padding: 8px 12px;
+            border: 2px solid #e94560;
+            border-radius: 3px;
+            font-size: 11px;
+            pointer-events: none;
+            z-index: 999;
+            display: none;
+            max-width: 200px;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e94560;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f1faee;
+        }
+
+        /* CONTROLES INFERIORES */
+        .controls {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(233, 69, 96, 0.3);
+            display: flex;
+            gap: 8px;
+        }
+
+        button.control-btn {
+            flex: 1;
+            padding: 8px 10px;
+            background: #0f3460;
+            border: 2px solid #e94560;
+            color: #f1faee;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border-radius: 3px;
+        }
+
+        button.control-btn:hover {
+            background: #e94560;
+            transform: translateY(-2px);
+        }
+
+        button.control-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <!-- SIDEBAR IZQUIERDO -->
+        <div id="sidebar">
+            <div class="header-panel">🏙️ GESTOR DE CIUDADES</div>
+
+            <!-- INDICADORES -->
+            <div class="indicators">
+                <div class="indicator">
+                    <span class="indicator-label">💰 Dinero:</span>
+                    <span class="indicator-value money" id="moneyDisplay">50,000</span>
+                </div>
+                <div class="indicator">
+                    <span class="indicator-label">👥 Población:</span>
+                    <span class="indicator-value population" id="populationDisplay">0</span>
+                </div>
+                <div class="indicator">
+                    <span class="indicator-label">😊 Felicidad:</span>
+                    <span class="indicator-value happiness" id="happinessDisplay">75%</span>
+                </div>
+                <div class="indicator">
+                    <span class="indicator-label">⚡ Energía:</span>
+                    <span class="indicator-value energy" id="energyDisplay">0/1000</span>
+                </div>
+            </div>
+
+            <!-- CATEGORÍAS DE CONSTRUCCIÓN -->
+            <div class="build-categories">
+                <!-- CARRETERAS -->
+                <div class="category">
+                    <div class="category-title">🛣️ Vialidad</div>
+                    <button class="building-btn" onclick="selectBuilding('road')">
+                        <span>Carretera</span>
+                        <span class="building-cost">50</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('intersection')">
+                        <span>Intersección</span>
+                        <span class="building-cost">75</span>
+                    </button>
+                </div>
+
+                <!-- RESIDENCIAL -->
+                <div class="category">
+                    <div class="category-title">🏠 Residencial</div>
+                    <button class="building-btn" onclick="selectBuilding('house')">
+                        <span>Casa</span>
+                        <span class="building-cost">1,000</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('apartment')">
+                        <span>Bloque Apartamentos</span>
+                        <span class="building-cost">2,500</span>
+                    </button>
+                </div>
+
+                <!-- INDUSTRIAL -->
+                <div class="category">
+                    <div class="category-title">🏭 Industrial</div>
+                    <button class="building-btn" onclick="selectBuilding('factory')">
+                        <span>Fábrica</span>
+                        <span class="building-cost">3,000</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('warehouse')">
+                        <span>Almacén</span>
+                        <span class="building-cost">2,000</span>
+                    </button>
+                </div>
+
+                <!-- ENERGÍA -->
+                <div class="category">
+                    <div class="category-title">⚡ Energía</div>
+                    <button class="building-btn" onclick="selectBuilding('windmill')">
+                        <span>Turbina Eólica</span>
+                        <span class="building-cost">4,000</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('powerplant')">
+                        <span>Central Eléctrica</span>
+                        <span class="building-cost">5,000</span>
+                    </button>
+                </div>
+
+                <!-- TRANSPORTE -->
+                <div class="category">
+                    <div class="category-title">🚇 Transporte</div>
+                    <button class="building-btn" onclick="selectBuilding('station')">
+                        <span>Estación Metro</span>
+                        <span class="building-cost">3,500</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('airport')">
+                        <span>Aeropuerto</span>
+                        <span class="building-cost">10,000</span>
+                    </button>
+                </div>
+
+                <!-- SERVICIOS -->
+                <div class="category">
+                    <div class="category-title">🏥 Servicios</div>
+                    <button class="building-btn" onclick="selectBuilding('hospital')">
+                        <span>Hospital</span>
+                        <span class="building-cost">4,500</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('school')">
+                        <span>Escuela</span>
+                        <span class="building-cost">2,800</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTROLES -->
+            <div class="controls">
+                <button class="control-btn" onclick="clearSelection()">❌ Limpiar</button>
+                <button class="control-btn" onclick="resetCity()">🔄 Reiniciar</button>
+            </div>
+        </div>
+
+        <!-- ÁREA DE JUEGO -->
+        <div id="gameArea">
+            <canvas id="gameCanvas"></canvas>
+            <div class="info-panel">
+                <div class="info-item">
+                    <span>📍 Posición:</span>
+                    <span id="positionDisplay">0, 0</span>
+                </div>
+                <div class="info-item">
+                    <span>🎯 Seleccionado:</span>
+                    <span id="selectedDisplay">Nada</span>
+                </div>
+                <div class="info-item">
+                    <span>💬 Tip:</span>
+                    <span id="tipDisplay">Haz clic en el mapa para construir</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="buildTooltip"></div>
+
+    <script>
+        // ============ CONFIGURACIÓN ============
+        const TILE_WIDTH = 64;
+        const TILE_HEIGHT = 32;
+        const MAP_WIDTH = 16;
+        const MAP_HEIGHT = 16;
+
+        // ============ ESTADO DEL JUEGO ============
+        const gameState = {
+            money: 50000,
+            population: 0,
+            happiness: 75,
+            energy: 0,
+            maxEnergy: 1000,
+            selectedBuilding: null,
+            buildingData: {},
+            tiles: []
+        };
+
+        // ============ DEFINICIÓN DE EDIFICIOS ============
+        const buildings = {
+            road: { name: 'Carretera', cost: 50, emoji: '🛣️', color: '#444444', type: 'road' },
+            intersection: { name: 'Intersección', cost: 75, emoji: '🔲', color: '#555555', type: 'road' },
+            house: { name: 'Casa', cost: 1000, emoji: '🏠', color: '#4CAF50', type: 'residential', population: 10 },
+            apartment: { name: 'Apartamentos', cost: 2500, emoji: '🏢', color: '#66BB6A', type: 'residential', population: 30 },
+            factory: { name: 'Fábrica', cost: 3000, emoji: '🏭', color: '#FF6B6B', type: 'industrial', pollution: 30 },
+            warehouse: { name: 'Almacén', cost: 2000, emoji: '📦', color: '#FFA500', type: 'industrial' },
+            windmill: { name: 'Turbina Eólica', cost: 4000, emoji: '🌪️', color: '#4ECDC4', type: 'energy', production: 200 },
+            powerplant: { name: 'Central Eléctrica', cost: 5000, emoji: '⚡', color: '#FFD700', type: 'energy', production: 500 },
+            station: { name: 'Estación Metro', cost: 3500, emoji: '🚇', color: '#9C27B0', type: 'transport' },
+            airport: { name: 'Aeropuerto', cost: 10000, emoji: '✈️', color: '#2196F3', type: 'transport' },
+            hospital: { name: 'Hospital', cost: 4500, emoji: '🏥', color: '#E91E63', type: 'service' },
+            school: { name: 'Escuela', cost: 2800, emoji: '🎓', color: '#FF9800', type: 'service' }
+        };
+
+        // ============ CANVAS ============
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth - 280;
+            canvas.height = window.innerHeight - 60;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // ============ INICIALIZACIÓN ============
+        function initializeGame() {
+            gameState.tiles = [];
+            for (let row = 0; row < MAP_HEIGHT; row++) {
+                gameState.tiles[row] = [];
+                for (let col = 0; col < MAP_WIDTH; col++) {
+                    gameState.tiles[row][col] = null;
+                }
+            }
+            gameState.buildingData = {};
+            gameState.money = 50000;
+            gameState.population = 0;
+            gameState.happiness = 75;
+            gameState.energy = 0;
+            updateUI();
+            render();
+        }
+
+        // ============ CONVERSIÓN ISOMÉTRICA ============
+        function cartesianToIsometric(row, col) {
+            const x = (col - row) * (TILE_WIDTH / 2);
+            const y = (col + row) * (TILE_HEIGHT / 2);
+            return { x, y };
+        }
+
+        function isometricToCartesian(x, y) {
+            const col = (x / (TILE_WIDTH / 2) + y / (TILE_HEIGHT / 2)) / 2;
+            const row = (y / (TILE_HEIGHT / 2) - x / (TILE_WIDTH / 2)) / 2;
+            return { row: Math.floor(row), col: Math.floor(col) };
+        }
+
+        // ============ DIBUJO ============
+        function drawTile(row, col, building) {
+            const iso = cartesianToIsometric(row, col);
+            const offsetX = canvas.width / 2;
+            const offsetY = canvas.height / 2;
+
+            const x = offsetX + iso.x;
+            const y = offsetY + iso.y;
+
+            // Color base del terreno
+            let color = '#2a5a3a';
+            if (building) {
+                color = building.color;
+            }
+
+            // Dibujar cuadrado isométrico
+            ctx.fillStyle = color;
+            ctx.strokeStyle = '#1a3a2a';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + TILE_WIDTH / 2, y + TILE_HEIGHT / 2);
+            ctx.lineTo(x, y + TILE_HEIGHT);
+            ctx.lineTo(x - TILE_WIDTH / 2, y + TILE_HEIGHT / 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Dibujar emoji del edificio
+            if (building) {
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(building.emoji, x, y + TILE_HEIGHT / 2 - 4);
+            }
+        }
+
+        function drawPreview(row, col, building) {
+            if (building && row >= 0 && row < MAP_HEIGHT && col >= 0 && col < MAP_WIDTH) {
+                const iso = cartesianToIsometric(row, col);
+                const offsetX = canvas.width / 2;
+                const offsetY = canvas.height / 2;
+
+                const x = offsetX + iso.x;
+                const y = offsetY + iso.y;
+
+                ctx.fillStyle = `${building.color}80`; // Semi-transparente
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + TILE_WIDTH / 2, y + TILE_HEIGHT / 2);
+                ctx.lineTo(x, y + TILE_HEIGHT);
+                ctx.lineTo(x - TILE_WIDTH / 2, y + TILE_HEIGHT / 2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+        function render() {
+            // Fondo
+            ctx.fillStyle = '#1a3a52';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar todos los tiles
+            for (let row = 0; row < MAP_HEIGHT; row++) {
+                for (let col = 0; col < MAP_WIDTH; col++) {
+                    const building = gameState.tiles[row][col];
+                    drawTile(row, col, building);
+                }
+            }
+        }
+
+        // ============ EVENTOS DE MOUSE ============
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - canvas.width / 2;
+            const mouseY = e.clientY - rect.top - canvas.height / 2;
+
+            const cartesian = isometricToCartesian(mouseX, mouseY);
+            document.getElementById('positionDisplay').textContent = `${cartesian.col}, ${cartesian.row}`;
+
+            // Mostrar preview si hay algo seleccionado
+            if (gameState.selectedBuilding) {
+                render();
+                drawPreview(cartesian.row, cartesian.col, buildings[gameState.selectedBuilding]);
+
+                // Mostrar tooltip
+                const tooltip = document.getElementById('buildTooltip');
+                const building = buildings[gameState.selectedBuilding];
+                tooltip.innerHTML = `<strong>${building.emoji} ${building.name}</strong><br/>Costo: $${building.cost}`;
+                tooltip.style.left = (e.clientX + 10) + 'px';
+                tooltip.style.top = (e.clientY + 10) + 'px';
+                tooltip.style.display = 'block';
+            } else {
+                document.getElementById('buildTooltip').style.display = 'none';
+            }
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (!gameState.selectedBuilding) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - canvas.width / 2;
+            const mouseY = e.clientY - rect.top - canvas.height / 2;
+
+            const cartesian = isometricToCartesian(mouseX, mouseY);
+            const row = cartesian.row;
+            const col = cartesian.col;
+
+            if (row >= 0 && row < MAP_HEIGHT && col >= 0 && col < MAP_WIDTH) {
+                buildStructure(row, col, gameState.selectedBuilding);
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            document.getElementById('buildTooltip').style.display = 'none';
+        });
+
+        // ============ CONSTRUCCIÓN ============
+        function buildStructure(row, col, buildingType) {
+            if (gameState.tiles[row][col]) {
+                showNotification('❌ Ese espacio ya está ocupado');
+                return;
+            }
+
+            const building = buildings[buildingType];
+            if (gameState.money < building.cost) {
+                showNotification('💰 No tienes dinero suficiente');
+                return;
+            }
+
+            gameState.tiles[row][col] = building;
+            gameState.money -= building.cost;
+            gameState.buildingData[`${row},${col}`] = { type: buildingType, level: 1, health: 100 };
+
+            // Actualizar estadísticas
+            if (building.type === 'residential') {
+                gameState.population += building.population || 0;
+            }
+            if (building.type === 'energy') {
+                gameState.energy += building.production || 0;
+            }
+
+            showNotification(`✅ ${building.emoji} ${building.name} construido`);
+            updateUI();
+            render();
+        }
+
+        // ============ INTERFAZ ============
+        function selectBuilding(buildingType) {
+            gameState.selectedBuilding = gameState.selectedBuilding === buildingType ? null : buildingType;
+
+            // Actualizar UI
+            document.querySelectorAll('.building-btn').forEach(btn => btn.classList.remove('active'));
+            if (gameState.selectedBuilding) {
+                event.target.closest('.building-btn').classList.add('active');
+                document.getElementById('selectedDisplay').textContent = buildings[buildingType].name;
+                canvas.style.cursor = 'crosshair';
+            } else {
+                document.getElementById('selectedDisplay').textContent = 'Nada';
+                canvas.style.cursor = 'default';
+            }
+        }
+
+        function clearSelection() {
+            gameState.selectedBuilding = null;
+            document.querySelectorAll('.building-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('selectedDisplay').textContent = 'Nada';
+            canvas.style.cursor = 'default';
+            render();
+        }
+
+        function updateUI() {
+            document.getElementById('moneyDisplay').textContent = gameState.money.toLocaleString();
+            document.getElementById('populationDisplay').textContent = gameState.population.toLocaleString();
+            document.getElementById('energyDisplay').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
+            
+            // Calcular felicidad
+            const healthiness = Math.min(100, 50 + Math.floor(gameState.energy / 10));
+            gameState.happiness = Math.max(0, Math.min(100, healthiness - Math.floor(gameState.population / 100)));
+            document.getElementById('happinessDisplay').textContent = gameState.happiness + '%';
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function resetCity() {
+            if (confirm('¿Reiniciar la ciudad? Perderás todo tu progreso.')) {
+                initializeGame();
+                showNotification('🔄 Ciudad reiniciada');
+            }
+        }
+
+        // ============ INICIO ============
+        initializeGame();
+
+        // Tips aleatorios
+        const tips = [
+            'Las carreteras son la base de tu ciudad',
+            'Coloca escuelas y hospitales cerca de viviendas',
+            'Las turbinas eólicas generan energía limpia',
+            'La población genera ingresos pasivos',
+            'Mantén alta la felicidad para atraer más ciudadanos',
+            'Las fábricas producen contaminación'
+        ];
+
+        function showRandomTip() {
+            const tip = tips[Math.floor(Math.random() * tips.length)];
+            document.getElementById('tipDisplay').textContent = tip;
+        }
+
+        setInterval(showRandomTip, 8000);
+
+        // Generar ingresos
+        setInterval(() => {
+            const income = Math.floor(gameState.population * 0.5);
+            gameState.money += income;
+            updateUI();
+        }, 3000);
+    </script>
+</body>
+</html>

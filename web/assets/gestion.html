@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ecovia: Civilización Viva</title>
+    <style>
+        body { margin: 0; background: #070d1d; color: #f8fafc; font-family: sans-serif; overflow: hidden; }
+        #ui { position: absolute; top: 20px; left: 20px; background: rgba(11, 19, 41, 0.95); padding: 20px; border: 1px solid #10b981; border-radius: 12px; width: 300px; z-index: 10; }
+        button { display: block; width: 100%; margin-bottom: 8px; padding: 10px; cursor: pointer; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 6px; font-weight: bold; text-align: left; }
+        button:hover, button.active { background: #10b981; color: #070d1d; }
+        canvas { display: block; width: 100vw; height: 100vh; cursor: crosshair; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <h3>Ecovia: Panel de Control</h3>
+        <p>Fondos: $60,000 | Población: 12,450</p>
+        <button id="btn-HOUSE" class="active" onclick="setTool('HOUSE')">🏡 Eco-Residencial</button>
+        <button id="btn-ROAD" onclick="setTool('ROAD')">🛣️ Vía Local</button>
+        <button id="btn-FACTORY" onclick="setTool('FACTORY')">🏭 Industria</button>
+        <button id="btn-WETLAND" onclick="setTool('WETLAND')">💧 Humedal</button>
+    </div>
+    <canvas id="game"></canvas>
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        let currentTool = 'HOUSE';
+        const gridSize = 20;
+        let grid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function setTool(t) {
+            currentTool = t;
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + t).classList.add('active');
+        }
+
+        canvas.addEventListener('click', (e) => {
+            let rect = canvas.getBoundingClientRect();
+            let mouseX = e.clientX - rect.left;
+            let mouseY = e.clientY - rect.top;
+            let startX = canvas.width / 2;
+            let startY = 150;
+            let tileWidth = 64;
+            let tileHeight = 32;
+
+            for (let x = 0; x < gridSize; x++) {
+                for (let y = 0; y < gridSize; y++) {
+                    let isoX = startX + (x - y) * (tileWidth / 2);
+                    let isoY = startY + (x + y) * (tileHeight / 2);
+                    let cx = mouseX - isoX;
+                    let cy = mouseY - isoY;
+                    if (Math.abs(cx) / (tileWidth / 2) + Math.abs(cy) / (tileHeight / 2) <= 1) {
+                        grid[x][y] = currentTool;
+                        return;
+                    }
+                }
+            }
+        });
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let startX = canvas.width / 2;
+            let startY = 150;
+            let tileWidth = 64;
+            let tileHeight = 32;
+
+            for (let x = 0; x < gridSize; x++) {
+                for (let y = 0; y < gridSize; y++) {
+                    let isoX = startX + (x - y) * (tileWidth / 2);
+                    let isoY = startY + (x + y) * (tileHeight / 2);
+
+                    ctx.beginPath();
+                    ctx.moveTo(isoX, isoY);
+                    ctx.lineTo(isoX + tileWidth / 2, isoY + tileHeight / 2);
+                    ctx.lineTo(isoX, isoY + tileHeight);
+                    ctx.lineTo(isoX - tileWidth / 2, isoY + tileHeight / 2);
+                    ctx.closePath();
+
+                    let cell = grid[x][y];
+                    if (cell === 'HOUSE') ctx.fillStyle = '#10b981';
+                    else if (cell === 'ROAD') ctx.fillStyle = '#64748b';
+                    else if (cell === 'FACTORY') ctx.fillStyle = '#f59e0b';
+                    else if (cell === 'WETLAND') ctx.fillStyle = '#0ea5e9';
+                    else ctx.fillStyle = 'rgba(30, 41, 59, 0.4)';
+
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.stroke();
+                }
+            }
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+    </script>
+    <!-- Pega aquí el canvas y el script del globo terráqueo -->
+    <canvas id="earthCanvas" width="300" height="300" style="background: transparent;"></canvas>
+    <script>
+      const canvas = document.getElementById('earthCanvas');
+      const ctx = canvas.getContext('2d');
+      let angle = 0;
+
+      function drawGlobe() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.beginPath();
+        ctx.arc(150, 150, 100, 0, Math.PI * 2);
+        ctx.fillStyle = '#0a2342';
+        ctx.fill();
+        ctx.strokeStyle = '#00ffcc';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        for (let i = -Math.PI; i < Math.PI; i += 0.5) {
+          let x = 150 + Math.cos(i + angle) * 100;
+          ctx.ellipse(x, 150, Math.abs(Math.sin(i + angle) * 100), 100, 0, 0, Math.PI * 2);
+        }
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)';
+        ctx.stroke();
+
+        angle += 0.02;
+        requestAnimationFrame(drawGlobe);
+      }
+      drawGlobe();
+    </script>
+  </body>
+</html>
+</body>
+</html>

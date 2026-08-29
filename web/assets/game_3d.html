@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecovia: Civilización Viva - Ciudad 3D Detallada</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #060913;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #canvas-container {
+            width: 100%;
+            height: 100vh;
+        }
+        #info {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.85);
+            color: #38bdf8;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+            z-index: 10;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffffff;
+            font-size: 20px;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 20px 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 100;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div id="loading">Generando río, puentes y entorno detallado...</div>
+    <div id="info">🌿 Ecovia: Civilización Viva — Vista Urbana Pro</div>
+    <div id="canvas-container"></div>
+
+    <script>
+        const loadingDiv = document.getElementById('loading');
+
+        try {
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x060913);
+            scene.fog = new THREE.FogExp2(0x060913, 0.02);
+
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(28, 22, 28);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.1;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.05;
+            controls.minDistance = 10;
+            controls.maxDistance = 55;
+
+            // Iluminación
+            const ambientLight = new THREE.AmbientLight(0x1e293b, 1.4);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0xfffbeb, 2.2);
+            sunLight.position.set(30, 45, 25);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 100;
+            const d = 25;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            sunLight.shadow.bias = -0.0005;
+            scene.add(sunLight);
+
+            // Terreno base
+            const boardSize = 24;
+            const floorGeo = new THREE.BoxGeometry(boardSize, 0.8, boardSize);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.position.y = -0.4;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            const gridHelper = new THREE.GridHelper(boardSize, boardSize, 0x0ea5e9, 0x1e293b);
+            gridHelper.position.y = 0.01;
+            scene.add(gridHelper);
+
+            // 1. RÍO DETALLADO (Curvado)
+            const curve = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(-10, 0.02, -12),
+                new THREE.Vector3(-4, 0.02, -4),
+                new THREE.Vector3(-2, 0.02, 0),
+                new THREE.Vector3(2, 0.02, 4),
+                new THREE.Vector3(8, 0.02, 12)
+            ]);
+            
+            const riverGeo = new THREE.TubeGeometry(curve, 64, 1.8, 8, false);
+            const riverMat = new THREE.MeshStandardMaterial({
+                color: 0x0284c7,
+                roughness: 0.1,
+                metalness: 0.8,
+                transparent: true,
+                opacity: 0.9
+            });
+            const riverMesh = new THREE.Mesh(riverGeo, riverMat);
+            riverMesh.position.y = 0.03;
+            riverMesh.receiveShadow = true;
+            scene.add(riverMesh);
+
+            // 2. PUENTE DE PIEDRA SOBRE EL RÍO
+            function createBridge(x, z, rotationY) {
+                const bridgeGroup = new THREE.Group();
+                const stoneMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.7 });
+                const woodMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.6 });
+
+                // Plataforma del puente
+                const deck = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.2, 4.5), stoneMat);
+                deck.position.y = 0.4;
+                deck.castShadow = true;
+                deck.receiveShadow = true;
+                bridgeGroup.add(deck);
+
+                // Barandillas laterales
+                for (let i = -1; i <= 1; i += 2) {
+                    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.5, 4.5), woodMat);
+                    rail.position.set(i * 1.1, 0.65, 0);
+                    rail.castShadow = true;
+                    bridgeGroup.add(rail);
+                }
+
+                bridgeGroup.position.set(x, 0, z);
+                bridgeGroup.rotation.y = rotationY;
+                scene.add(bridgeGroup);
+            }
+            createBridge(-2.5, 0, 0.4);
+
+            // 3. FAROLAS DETALLADAS
+            function createLampPost(x, z) {
+                const lampGroup = new THREE.Group();
+                const metalMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8, roughness: 0.2 });
+                
+                // Poste vertical
+                const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 2.2), metalMat);
+                pole.position.y = 1.1;
+                pole.castShadow = true;
+                lampGroup.add(pole);
+
+                // Luminaria superior
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 0.3), metalMat);
+                head.position.y = 2.2;
+                lampGroup.add(head);
+
+                // Luz brillante de la farola
+                const light = new THREE.PointLight(0xfde047, 1.2, 5);
+                light.position.set(0, 2.0, 0);
+                lampGroup.add(light);
+
+                lampGroup.position.set(x, 0, z);
+                scene.add(lampGroup);
+            }
+            createLampPost(-4, -2);
+            createLampPost(1, 2);
+            createLampPost(5, -4);
+
+            // 4. ÁRBOLES REALISTAS (Pinos y frondosos)
+            function createDetailedTree(x, z) {
+                const tree = new THREE.Group();
+                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x582f0e, roughness: 0.9 });
+                const leavesMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.6 });
+
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 1.2), trunkMat);
+                trunk.position.y = 0.6;
+                trunk.castShadow = true;
+                tree.add(trunk);
+
+                // Copa cónica detallada (dos niveles)
+                const leaves1 = new THREE.Mesh(new THREE.ConeGeometry(0.9, 1.4, 6), leavesMat);
+                leaves1.position.y = 1.6;
+                leaves1.castShadow = true;
+                tree.add(leaves1);
+
+                const leaves2 = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.0, 6), leavesMat);
+                leaves2.position.y = 2.4;
+                leaves2.castShadow = true;
+                tree.add(leaves2);
+
+                tree.position.set(x, 0, z);
+                scene.add(tree);
+            }
+
+            // Distribuir árboles por el mapa
+            const treePositions = [
+                [-7, -7], [-5, -9], [7, 6], [9, 8], [-8, 4], [6, -7], [-3, 7], [4, 9]
+            ];
+            treePositions.forEach(pos => createDetailedTree(pos[0], pos[1]));
+
+            // 5. EDIFICIOS ESTILIZADOS Y REALISTAS
+            function createBuilding(x, z, type) {
+                const group = new THREE.Group();
+
+                if (type === 'eco_house') {
+                    const baseMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+                    const base = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 1.4), baseMat);
+                    base.position.y = 0.7;
+                    base.castShadow = true;
+                    base.receiveShadow = true;
+                    group.add(base);
+
+                    const roofMat = new THREE.MeshStandardMaterial({ color: 0x047857, roughness: 0.4 });
+                    const roof = new THREE.Mesh(new THREE.ConeGeometry(1.1, 0.9, 4), roofMat);
+                    roof.position.y = 1.85;
+                    roof.rotation.y = Math.PI / 4;
+                    roof.castShadow = true;
+                    group.add(roof);
+                } else if (type === 'wind_turbine') {
+                    const towerMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.6, roughness: 0.2 });
+                    const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.18, 4), towerMat);
+                    tower.position.y = 2;
+                    tower.castShadow = true;
+                    group.add(tower);
+
+                    const bladeGroup = new THREE.Group();
+                    bladeGroup.position.set(0, 3.8, 0);
+                    for (let i = 0; i < 3; i++) {
+                        const bladeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
+                        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.4, 0.02), bladeMat);
+                        blade.position.y = 0.7;
+                        const pivot = new THREE.Group();
+                        pivot.rotation.z = (i * Math.PI * 2) / 3;
+                        pivot.add(blade);
+                        bladeGroup.add(pivot);
+                    }
+                    group.add(bladeGroup);
+                    group.userData.windTurbine = bladeGroup;
+                }
+
+                group.position.set(x, 0, z);
+                scene.add(group);
+            }
+
+            createBuilding(-5, -3, 'eco_house');
+            createBuilding(-5, 3, 'eco_house');
+            createBuilding(4, -2, 'wind_turbine');
+            createBuilding(5, 5, 'eco_house');
+
+            loadingDiv.style.display = 'none';
+
+            // Animación continua
+            function animate() {
+                requestAnimationFrame(animate);
+
+                scene.traverse((obj) => {
+                    if (obj.userData && obj.userData.windTurbine) {
+                        obj.userData.windTurbine.rotation.z -= 0.035;
+                    }
+                });
+
+                controls.update();
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+        } catch (error) {
+            console.error('Error:', error);
+            loadingDiv.textContent = '❌ Error al cargar los gráficos detallados.';
+        }
+    </script>
+</body>
+</html>

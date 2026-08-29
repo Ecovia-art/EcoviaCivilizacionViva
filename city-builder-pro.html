@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Builder Pro - Gestor Avanzado de Ciudades</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* SIDEBAR - MENÚ LATERAL */
+        #sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0f3460 0%, #16213e 100%);
+            border-right: 3px solid #e94560;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .header-panel {
+            padding: 15px;
+            background: linear-gradient(90deg, #e94560 0%, #c7184d 100%);
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            border-bottom: 2px solid #a01540;
+        }
+
+        .indicators {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #e94560;
+            font-size: 11px;
+        }
+
+        .indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .indicator:last-child {
+            border-bottom: none;
+        }
+
+        .indicator-label {
+            font-weight: 600;
+            color: #a8dadc;
+        }
+
+        .indicator-value {
+            font-size: 12px;
+            font-weight: bold;
+            color: #f1faee;
+        }
+
+        .money { color: #90ee90; }
+        .population { color: #87ceeb; }
+        .happiness { color: #ffd700; }
+        .energy { color: #ff6b6b; }
+        .pollution { color: #a0d468; }
+        .traffic { color: #ffa500; }
+
+        .build-categories {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+        }
+
+        .category {
+            margin-bottom: 10px;
+        }
+
+        .category-title {
+            background: rgba(233, 69, 96, 0.7);
+            padding: 6px 8px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-left: 3px solid #f1faee;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-title:hover {
+            background: rgba(233, 69, 96, 1);
+            transform: translateX(3px);
+        }
+
+        .building-btn {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 3px;
+            background: rgba(15, 52, 96, 0.6);
+            border: 2px solid #0f3460;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .building-btn:hover {
+            background: rgba(233, 69, 96, 0.3);
+            border-color: #e94560;
+            transform: translateX(3px);
+        }
+
+        .building-btn.active {
+            background: rgba(233, 69, 96, 0.8);
+            border-color: #f1faee;
+            box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+
+        .building-cost {
+            font-size: 9px;
+            color: #90ee90;
+            font-weight: bold;
+        }
+
+        #gameArea {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%);
+            position: relative;
+        }
+
+        #gameCanvas {
+            flex: 1;
+            display: block;
+            cursor: crosshair;
+            background: radial-gradient(circle at center, #1a3a52 0%, #0f1b2e 100%);
+        }
+
+        .top-bar {
+            height: 50px;
+            background: rgba(0, 0, 0, 0.6);
+            border-bottom: 2px solid #e94560;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            flex-wrap: wrap;
+        }
+
+        .top-bar-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .mission-info {
+            background: rgba(233, 69, 96, 0.2);
+            padding: 8px 12px;
+            border-radius: 3px;
+            border-left: 3px solid #ffd700;
+        }
+
+        .mission-title {
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .mission-progress {
+            font-size: 10px;
+            color: #a8dadc;
+        }
+
+        .info-panel {
+            height: 50px;
+            background: rgba(0, 0, 0, 0.6);
+            border-top: 2px solid #e94560;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+        }
+
+        .info-item {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 70px;
+            left: 300px;
+            right: 20px;
+            padding: 10px 12px;
+            background: rgba(233, 69, 96, 0.9);
+            border-left: 4px solid #f1faee;
+            color: white;
+            font-size: 11px;
+            border-radius: 3px;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+            max-width: 500px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        #buildTooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: #f1faee;
+            padding: 8px 10px;
+            border: 2px solid #e94560;
+            border-radius: 3px;
+            font-size: 10px;
+            pointer-events: none;
+            z-index: 999;
+            display: none;
+            max-width: 200px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e94560;
+            border-radius: 3px;
+        }
+
+        .controls {
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 1px solid rgba(233, 69, 96, 0.3);
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        button.control-btn {
+            flex: 1;
+            min-width: 70px;
+            padding: 6px 8px;
+            background: #0f3460;
+            border: 2px solid #e94560;
+            color: #f1faee;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border-radius: 3px;
+        }
+
+        button.control-btn:hover {
+            background: #e94560;
+            transform: translateY(-2px);
+        }
+
+        /* Modal para misiones */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            margin: 5% auto;
+            padding: 20px;
+            border: 3px solid #e94560;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 5px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e94560;
+            padding-bottom: 10px;
+        }
+
+        .modal-body {
+            color: #e0e0e0;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .modal-button {
+            padding: 8px 15px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .modal-button:hover {
+            background: #c7184d;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            color: #e94560;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #ffd700;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 10px 0;
+            font-size: 10px;
+        }
+
+        .stat-box {
+            background: rgba(233, 69, 96, 0.1);
+            padding: 8px;
+            border-radius: 3px;
+            border-left: 2px solid #e94560;
+        }
+
+        .zoom-controls {
+            position: fixed;
+            right: 20px;
+            bottom: 120px;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            background: #e94560;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .zoom-btn:hover {
+            background: #ffd700;
+            color: #0f3460;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <!-- SIDEBAR IZQUIERDO -->
+        <div id="sidebar">
+            <div class="header-panel">🏙️ CITY BUILDER PRO</div>
+
+            <!-- INDICADORES -->
+            <div class="indicators">
+                <div class="indicator">
+                    <span class="indicator-label">💰</span>
+                    <span class="indicator-value money" id="moneyDisplay">50,000</span>
+                </div>
+                <div class="indicator">
+                    <span class="indicator-label">👥</span>
+                    <span class="indicator-value population" id="populationDisplay">0</span>
+                </div>
+                <div class="indicator">
+                    <span class="indicator-label">😊</span>
+                    <span class="indicator-value happiness" id="happinessDisplay">75%</span>
+                </div>
+                <div class="indicator">
+                    <span class="indicator-label">⚡</span>
+                    <span class="indicator-value energy" id="energyDisplay">0/1000</span>
+                </div>
+                <div class="indicator">
+                    <span class="indicator-label">💨</span>
+                    <span class="indicator-value pollution" id="pollutionDisplay">0%</span>
+                </div>
+                <div class="indicator">
+                    <span class="indicator-label">🚗</span>
+                    <span class="indicator-value traffic" id="trafficDisplay">0%</span>
+                </div>
+            </div>
+
+            <!-- CATEGORÍAS DE CONSTRUCCIÓN -->
+            <div class="build-categories">
+                <!-- HERRAMIENTAS -->
+                <div class="category">
+                    <div class="category-title">🔧 Herramientas</div>
+                    <button class="building-btn" onclick="selectBuilding('demolish')">
+                        <span>🗑️ Demoler</span>
+                        <span class="building-cost">500</span>
+                    </button>
+                </div>
+
+                <!-- CARRETERAS -->
+                <div class="category">
+                    <div class="category-title">🛣️ Vialidad</div>
+                    <button class="building-btn" onclick="selectBuilding('road')">
+                        <span>Carretera</span>
+                        <span class="building-cost">50</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('highway')">
+                        <span>Autopista</span>
+                        <span class="building-cost">150</span>
+                    </button>
+                </div>
+
+                <!-- RESIDENCIAL -->
+                <div class="category">
+                    <div class="category-title">🏠 Residencial</div>
+                    <button class="building-btn" onclick="selectBuilding('house')">
+                        <span>Casa</span>
+                        <span class="building-cost">1,000</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('apartment')">
+                        <span>Apartamentos</span>
+                        <span class="building-cost">2,500</span>
+                    </button>
+                </div>
+
+                <!-- INDUSTRIAL -->
+                <div class="category">
+                    <div class="category-title">🏭 Industrial</div>
+                    <button class="building-btn" onclick="selectBuilding('factory')">
+                        <span>Fábrica</span>
+                        <span class="building-cost">3,000</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('warehouse')">
+                        <span>Almacén</span>
+                        <span class="building-cost">2,000</span>
+                    </button>
+                </div>
+
+                <!-- ENERGÍA -->
+                <div class="category">
+                    <div class="category-title">⚡ Energía</div>
+                    <button class="building-btn" onclick="selectBuilding('windmill')">
+                        <span>Turbina Eólica</span>
+                        <span class="building-cost">4,000</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('powerplant')">
+                        <span>Central Eléctrica</span>
+                        <span class="building-cost">5,000</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('water_tower')">
+                        <span>Depósito de Agua</span>
+                        <span class="building-cost">3,500</span>
+                    </button>
+                </div>
+
+                <!-- TRANSPORTE -->
+                <div class="category">
+                    <div class="category-title">🚇 Transporte</div>
+                    <button class="building-btn" onclick="selectBuilding('station')">
+                        <span>Est. Metro</span>
+                        <span class="building-cost">3,500</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('airport')">
+                        <span>Aeropuerto</span>
+                        <span class="building-cost">10,000</span>
+                    </button>
+                </div>
+
+                <!-- SERVICIOS -->
+                <div class="category">
+                    <div class="category-title">🏥 Servicios</div>
+                    <button class="building-btn" onclick="selectBuilding('hospital')">
+                        <span>Hospital</span>
+                        <span class="building-cost">4,500</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('school')">
+                        <span>Escuela</span>
+                        <span class="building-cost">2,800</span>
+                    </button>
+                    <button class="building-btn" onclick="selectBuilding('park')">
+                        <span>Parque</span>
+                        <span class="building-cost">1,200</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTROLES -->
+            <div class="controls">
+                <button class="control-btn" onclick="clearSelection()">❌ Limpiar</button>
+                <button class="control-btn" onclick="showStats()">📊 Stats</button>
+                <button class="control-btn" onclick="saveCity()">💾 Guardar</button>
+                <button class="control-btn" onclick="loadCity()">📂 Cargar</button>
+                <button class="control-btn" onclick="resetCity()">🔄 Reset</button>
+            </div>
+        </div>
+
+        <!-- ÁREA DE JUEGO -->
+        <div id="gameArea">
+            <!-- TOP BAR -->
+            <div class="top-bar">
+                <div class="top-bar-section">
+                    <span>⏰ Año: <strong id="yearDisplay">1</strong></span>
+                    <span>📈 PIB: <strong id="gdpDisplay">$0</strong></span>
+                    <span>💼 Desempleo: <strong id="unemploymentDisplay">0%</strong></span>
+                </div>
+                <div class="mission-info">
+                    <div class="mission-title" id="missionTitle">📋 Misión: Construye 5 casas</div>
+                    <div class="mission-progress" id="missionProgress">Progreso: 0/5</div>
+                </div>
+            </div>
+
+            <!-- CANVAS -->
+            <canvas id="gameCanvas"></canvas>
+
+            <!-- INFO PANEL -->
+            <div class="info-panel">
+                <div class="info-item">
+                    <span>📍 Pos:</span>
+                    <span id="positionDisplay">0, 0</span>
+                </div>
+                <div class="info-item">
+                    <span>🎯 Tool:</span>
+                    <span id="selectedDisplay">Nada</span>
+                </div>
+                <div class="info-item">
+                    <span>Zoom: <span id="zoomLevel">100%</span></span>
+                </div>
+                <div class="info-item">
+                    <span>💬 <span id="tipDisplay">Usa rueda del ratón para zoom</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLES DE ZOOM -->
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomIn()">🔍+</button>
+            <button class="zoom-btn" onclick="zoomOut()">🔍−</button>
+        </div>
+    </div>
+
+    <!-- MODALES -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('statsModal')">&times;</span>
+            <div class="modal-header">📊 Estadísticas de la Ciudad</div>
+            <div class="modal-body">
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="missionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('missionModal')">&times;</span>
+            <div class="modal-header">🎯 Misión Completada</div>
+            <div class="modal-body" id="missionModalContent">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <button class="modal-button" onclick="closeModal('missionModal')">Continuar</button>
+        </div>
+    </div>
+
+    <div id="buildTooltip"></div>
+
+    <script>
+        // ============ CONFIGURACIÓN ============
+        const TILE_WIDTH = 64;
+        const TILE_HEIGHT = 32;
+        const MAP_WIDTH = 20;
+        const MAP_HEIGHT = 20;
+
+        // ============ ESTADO DEL JUEGO ============
+        const gameState = {
+            money: 50000,
+            population: 0,
+            happiness: 75,
+            energy: 0,
+            maxEnergy: 1000,
+            pollution: 0,
+            traffic: 0,
+            unemployment: 0,
+            gdp: 0,
+            year: 1,
+            selectedBuilding: null,
+            buildingData: {},
+            tiles: [],
+            cameraPanX: 0,
+            cameraPanY: 0,
+            zoomLevel: 1,
+            missionIndex: 0,
+            completedMissions: []
+        };
+
+        // ============ DEFINICIÓN DE EDIFICIOS ============
+        const buildings = {
+            demolish: { name: 'Demoler', cost: 500, emoji: '🗑️', color: '#333333', type: 'tool' },
+            road: { name: 'Carretera', cost: 50, emoji: '🛣️', color: '#444444', type: 'road', traffic_reduction: 5 },
+            highway: { name: 'Autopista', cost: 150, emoji: '🛣️', color: '#555555', type: 'road', traffic_reduction: 15 },
+            house: { name: 'Casa', cost: 1000, emoji: '🏠', color: '#4CAF50', type: 'residential', population: 10, pollution: 2 },
+            apartment: { name: 'Apartamentos', cost: 2500, emoji: '🏢', color: '#66BB6A', type: 'residential', population: 30, pollution: 5 },
+            factory: { name: 'Fábrica', cost: 3000, emoji: '🏭', color: '#FF6B6B', type: 'industrial', pollution: 30, traffic: 10 },
+            warehouse: { name: 'Almacén', cost: 2000, emoji: '📦', color: '#FFA500', type: 'industrial', pollution: 5, traffic: 3 },
+            windmill: { name: 'Turbina Eólica', cost: 4000, emoji: '🌪️', color: '#4ECDC4', type: 'energy', production: 200, pollution: -5 },
+            powerplant: { name: 'Central Eléctrica', cost: 5000, emoji: '⚡', color: '#FFD700', type: 'energy', production: 500, pollution: 20 },
+            water_tower: { name: 'Depósito de Agua', cost: 3500, emoji: '💧', color: '#00BCD4', type: 'energy', production: 100 },
+            station: { name: 'Estación Metro', cost: 3500, emoji: '🚇', color: '#9C27B0', type: 'transport', traffic_reduction: 20 },
+            airport: { name: 'Aeropuerto', cost: 10000, emoji: '✈️', color: '#2196F3', type: 'transport', traffic: 15, pollution: 10 },
+            hospital: { name: 'Hospital', cost: 4500, emoji: '🏥', color: '#E91E63', type: 'service', happiness_bonus: 5 },
+            school: { name: 'Escuela', cost: 2800, emoji: '🎓', color: '#FF9800', type: 'service', happiness_bonus: 3 },
+            park: { name: 'Parque', cost: 1200, emoji: '🌳', color: '#66BB6A', type: 'service', happiness_bonus: 4, pollution: -3 }
+        };
+
+        // ============ MISIONES ============
+        const missions = [
+            { title: 'Urbanista Principiante', goal: 'Construye 5 casas', type: 'build', target: 'house', count: 5, reward: 5000 },
+            { title: 'Gestor de Energía', goal: 'Genera 500+ energía', type: 'energy', target: 500, reward: 10000 },
+            { title: 'Ciudad Verde', goal: 'Reduce contaminación a menos del 20%', type: 'pollution', target: 20, reward: 8000 },
+            { title: 'Metrópolis', goal: 'Alcanza 500+ población', type: 'population', target: 500, reward: 15000 },
+            { title: 'Transporte Eficiente', goal: 'Construye 3 estaciones de metro', type: 'build', target: 'station', count: 3, reward: 7000 }
+        ];
+
+        // ============ CANVAS ============
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth - 280;
+            canvas.height = window.innerHeight - 100;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // ============ INICIALIZACIÓN ============
+        function initializeGame() {
+            gameState.tiles = [];
+            for (let row = 0; row < MAP_HEIGHT; row++) {
+                gameState.tiles[row] = [];
+                for (let col = 0; col < MAP_WIDTH; col++) {
+                    gameState.tiles[row][col] = null;
+                }
+            }
+            gameState.buildingData = {};
+            gameState.money = 50000;
+            gameState.population = 0;
+            gameState.happiness = 75;
+            gameState.energy = 0;
+            gameState.pollution = 0;
+            gameState.traffic = 0;
+            gameState.unemployment = 0;
+            gameState.gdp = 0;
+            gameState.year = 1;
+            gameState.missionIndex = 0;
+            gameState.completedMissions = [];
+            updateUI();
+            updateMissionUI();
+            render();
+        }
+
+        // ============ CONVERSIÓN ISOMÉTRICA ============
+        function cartesianToIsometric(row, col) {
+            const x = (col - row) * (TILE_WIDTH / 2);
+            const y = (col + row) * (TILE_HEIGHT / 2);
+            return { x, y };
+        }
+
+        function isometricToCartesian(x, y) {
+            const col = (x / (TILE_WIDTH / 2) + y / (TILE_HEIGHT / 2)) / 2;
+            const row = (y / (TILE_HEIGHT / 2) - x / (TILE_WIDTH / 2)) / 2;
+            return { row: Math.floor(row), col: Math.floor(col) };
+        }
+
+        // ============ DIBUJO ============
+        function drawTile(row, col, building) {
+            const iso = cartesianToIsometric(row, col);
+            const offsetX = canvas.width / 2 + gameState.cameraPanX;
+            const offsetY = canvas.height / 2 + gameState.cameraPanY;
+
+            const x = (offsetX + iso.x) * gameState.zoomLevel;
+            const y = (offsetY + iso.y) * gameState.zoomLevel;
+
+            let color = '#2a5a3a';
+            if (building) {
+                color = building.color;
+            }
+
+            ctx.fillStyle = color;
+            ctx.strokeStyle = '#1a3a2a';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + TILE_WIDTH / 2 * gameState.zoomLevel, y + TILE_HEIGHT / 2 * gameState.zoomLevel);
+            ctx.lineTo(x, y + TILE_HEIGHT * gameState.zoomLevel);
+            ctx.lineTo(x - TILE_WIDTH / 2 * gameState.zoomLevel, y + TILE_HEIGHT / 2 * gameState.zoomLevel);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            if (building && gameState.zoomLevel > 0.7) {
+                ctx.font = `bold ${14 * gameState.zoomLevel}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(building.emoji, x, y + TILE_HEIGHT / 2 * gameState.zoomLevel - 4);
+            }
+        }
+
+        function drawPreview(row, col, building) {
+            if (building && row >= 0 && row < MAP_HEIGHT && col >= 0 && col < MAP_WIDTH) {
+                const iso = cartesianToIsometric(row, col);
+                const offsetX = canvas.width / 2 + gameState.cameraPanX;
+                const offsetY = canvas.height / 2 + gameState.cameraPanY;
+
+                const x = (offsetX + iso.x) * gameState.zoomLevel;
+                const y = (offsetY + iso.y) * gameState.zoomLevel;
+
+                ctx.fillStyle = `${building.color}80`;
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + TILE_WIDTH / 2 * gameState.zoomLevel, y + TILE_HEIGHT / 2 * gameState.zoomLevel);
+                ctx.lineTo(x, y + TILE_HEIGHT * gameState.zoomLevel);
+                ctx.lineTo(x - TILE_WIDTH / 2 * gameState.zoomLevel, y + TILE_HEIGHT / 2 * gameState.zoomLevel);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+        function render() {
+            ctx.fillStyle = '#1a3a52';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let row = 0; row < MAP_HEIGHT; row++) {
+                for (let col = 0; col < MAP_WIDTH; col++) {
+                    const building = gameState.tiles[row][col];
+                    drawTile(row, col, building);
+                }
+            }
+        }
+
+        // ============ EVENTOS DE MOUSE ============
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left - canvas.width / 2) / gameState.zoomLevel - gameState.cameraPanX;
+            const mouseY = (e.clientY - rect.top - canvas.height / 2) / gameState.zoomLevel - gameState.cameraPanY;
+
+            const cartesian = isometricToCartesian(mouseX, mouseY);
+            document.getElementById('positionDisplay').textContent = `${cartesian.col}, ${cartesian.row}`;
+
+            if (gameState.selectedBuilding) {
+                render();
+                drawPreview(cartesian.row, cartesian.col, buildings[gameState.selectedBuilding]);
+
+                const tooltip = document.getElementById('buildTooltip');
+                const building = buildings[gameState.selectedBuilding];
+                tooltip.innerHTML = `<strong>${building.emoji} ${building.name}</strong><br/>Costo: $${building.cost}`;
+                tooltip.style.left = (e.clientX + 10) + 'px';
+                tooltip.style.top = (e.clientY + 10) + 'px';
+                tooltip.style.display = 'block';
+            } else {
+                document.getElementById('buildTooltip').style.display = 'none';
+                render();
+            }
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (!gameState.selectedBuilding) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left - canvas.width / 2) / gameState.zoomLevel - gameState.cameraPanX;
+            const mouseY = (e.clientY - rect.top - canvas.height / 2) / gameState.zoomLevel - gameState.cameraPanY;
+
+            const cartesian = isometricToCartesian(mouseX, mouseY);
+            const row = cartesian.row;
+            const col = cartesian.col;
+
+            if (gameState.selectedBuilding === 'demolish') {
+                demolishBuilding(row, col);
+            } else if (row >= 0 && row < MAP_HEIGHT && col >= 0 && col < MAP_WIDTH) {
+                buildStructure(row, col, gameState.selectedBuilding);
+            }
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            gameState.zoomLevel = Math.max(0.5, Math.min(2, gameState.zoomLevel * delta));
+            document.getElementById('zoomLevel').textContent = Math.round(gameState.zoomLevel * 100) + '%';
+            render();
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            document.getElementById('buildTooltip').style.display = 'none';
+        });
+
+        // ============ CONSTRUCCIÓN Y DEMOLICIÓN ============
+        function buildStructure(row, col, buildingType) {
+            if (gameState.tiles[row][col]) {
+                showNotification('❌ Ese espacio ya está ocupado');
+                return;
+            }
+
+            const building = buildings[buildingType];
+            if (gameState.money < building.cost) {
+                showNotification('💰 No tienes dinero suficiente');
+                return;
+            }
+
+            gameState.tiles[row][col] = building;
+            gameState.money -= building.cost;
+            gameState.buildingData[`${row},${col}`] = { type: buildingType, level: 1, health: 100 };
+
+            if (building.type === 'residential') {
+                gameState.population += building.population || 0;
+            }
+            if (building.type === 'energy') {
+                gameState.energy += building.production || 0;
+            }
+            if (building.pollution) {
+                gameState.pollution += building.pollution;
+            }
+            if (building.traffic) {
+                gameState.traffic += building.traffic;
+            }
+
+            showNotification(`✅ ${building.emoji} ${building.name} construido`);
+            updateMissionProgress(buildingType);
+            updateUI();
+            render();
+        }
+
+        function demolishBuilding(row, col) {
+            if (!gameState.tiles[row][col]) {
+                showNotification('❌ No hay nada que demoler');
+                return;
+            }
+
+            const building = gameState.tiles[row][col];
+            const refund = Math.floor(buildings[Object.keys(buildings).find(k => buildings[k] === building)].cost * 0.5);
+
+            if (gameState.money < 500) {
+                showNotification('💰 No tienes dinero para demoler');
+                return;
+            }
+
+            gameState.money -= 500;
+            gameState.money += refund;
+            gameState.tiles[row][col] = null;
+
+            if (building.type === 'residential') {
+                gameState.population -= building.population || 0;
+            }
+            if (building.type === 'energy') {
+                gameState.energy -= building.production || 0;
+            }
+            if (building.pollution) {
+                gameState.pollution -= building.pollution;
+            }
+            if (building.traffic) {
+                gameState.traffic -= building.traffic;
+            }
+
+            showNotification(`🗑️ Demolido. Reembolso: $${refund}`);
+            delete gameState.buildingData[`${row},${col}`];
+            updateUI();
+            render();
+        }
+
+        // ============ INTERFAZ ============
+        function selectBuilding(buildingType) {
+            gameState.selectedBuilding = gameState.selectedBuilding === buildingType ? null : buildingType;
+
+            document.querySelectorAll('.building-btn').forEach(btn => btn.classList.remove('active'));
+            if (gameState.selectedBuilding) {
+                event.target.closest('.building-btn').classList.add('active');
+                document.getElementById('selectedDisplay').textContent = buildings[buildingType].name;
+                canvas.style.cursor = 'crosshair';
+            } else {
+                document.getElementById('selectedDisplay').textContent = 'Nada';
+                canvas.style.cursor = 'default';
+            }
+        }
+
+        function clearSelection() {
+            gameState.selectedBuilding = null;
+            document.querySelectorAll('.building-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('selectedDisplay').textContent = 'Nada';
+            canvas.style.cursor = 'default';
+            render();
+        }
+
+        function updateUI() {
+            document.getElementById('moneyDisplay').textContent = gameState.money.toLocaleString();
+            document.getElementById('populationDisplay').textContent = gameState.population.toLocaleString();
+            document.getElementById('energyDisplay').textContent = `${gameState.energy}/${gameState.maxEnergy}`;
+            document.getElementById('pollutionDisplay').textContent = Math.min(100, Math.max(0, gameState.pollution)) + '%';
+            document.getElementById('trafficDisplay').textContent = Math.min(100, Math.max(0, gameState.traffic)) + '%';
+            document.getElementById('yearDisplay').textContent = gameState.year;
+
+            const healthiness = Math.min(100, 50 + Math.floor(gameState.energy / 10));
+            gameState.happiness = Math.max(0, Math.min(100, healthiness - Math.floor(gameState.population / 100) - gameState.pollution / 5));
+            document.getElementById('happinessDisplay').textContent = gameState.happiness + '%';
+
+            gameState.gdp = gameState.population * 100 + gameState.energy * 50;
+            document.getElementById('gdpDisplay').textContent = '$' + gameState.gdp.toLocaleString();
+
+            gameState.unemployment = Math.max(0, Math.min(100, 50 - gameState.population / 20));
+            document.getElementById('unemploymentDisplay').textContent = gameState.unemployment.toFixed(1) + '%';
+        }
+
+        function updateMissionUI() {
+            if (gameState.missionIndex < missions.length) {
+                const mission = missions[gameState.missionIndex];
+                document.getElementById('missionTitle').textContent = `📋 ${mission.title}`;
+                updateMissionProgress(null);
+            } else {
+                document.getElementById('missionTitle').textContent = '🏆 ¡Todas las misiones completadas!';
+                document.getElementById('missionProgress').textContent = 'Completado';
+            }
+        }
+
+        function updateMissionProgress(buildingType) {
+            if (gameState.missionIndex >= missions.length) return;
+
+            const mission = missions[gameState.missionIndex];
+            let progress = 0;
+
+            if (mission.type === 'build') {
+                progress = Object.values(gameState.buildingData).filter(b => b.type === mission.target).length;
+                document.getElementById('missionProgress').textContent = `Progreso: ${progress}/${mission.count}`;
+
+                if (progress >= mission.count) {
+                    completeMission();
+                }
+            } else if (mission.type === 'energy') {
+                progress = gameState.energy;
+                document.getElementById('missionProgress').textContent = `Energía: ${progress}/${mission.target}`;
+
+                if (progress >= mission.target) {
+                    completeMission();
+                }
+            } else if (mission.type === 'pollution') {
+                progress = gameState.pollution;
+                document.getElementById('missionProgress').textContent = `Contaminación: ${progress.toFixed(1)}%/${mission.target}%`;
+
+                if (progress <= mission.target) {
+                    completeMission();
+                }
+            } else if (mission.type === 'population') {
+                progress = gameState.population;
+                document.getElementById('missionProgress').textContent = `Población: ${progress}/${mission.target}`;
+
+                if (progress >= mission.target) {
+                    completeMission();
+                }
+            }
+        }
+
+        function completeMission() {
+            const mission = missions[gameState.missionIndex];
+            gameState.money += mission.reward;
+            gameState.completedMissions.push(gameState.missionIndex);
+
+            document.getElementById('missionModalContent').innerHTML = `
+                <h3 style="color: #ffd700; margin-bottom: 10px;">🎉 ¡MISIÓN COMPLETADA!</h3>
+                <p><strong>${mission.title}</strong></p>
+                <p>${mission.goal}</p>
+                <p style="color: #90ee90; font-size: 14px; margin-top: 10px;">💰 Recompensa: +$${mission.reward}</p>
+            `;
+            document.getElementById('missionModal').style.display = 'block';
+
+            gameState.missionIndex++;
+            updateMissionUI();
+            showNotification(`🎯 ¡Misión completada! +$${mission.reward}`);
+            updateUI();
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function showStats() {
+            const statsHtml = `
+                <div class="stat-box">
+                    <strong>Dinero:</strong><br>$${gameState.money.toLocaleString()}
+                </div>
+                <div class="stat-box">
+                    <strong>Población:</strong><br>${gameState.population.toLocaleString()}
+                </div>
+                <div class="stat-box">
+                    <strong>Felicidad:</strong><br>${gameState.happiness.toFixed(1)}%
+                </div>
+                <div class="stat-box">
+                    <strong>Energía:</strong><br>${gameState.energy}/${gameState.maxEnergy}
+                </div>
+                <div class="stat-box">
+                    <strong>Contaminación:</strong><br>${gameState.pollution.toFixed(1)}%
+                </div>
+                <div class="stat-box">
+                    <strong>Tráfico:</strong><br>${gameState.traffic.toFixed(1)}%
+                </div>
+                <div class="stat-box">
+                    <strong>Desempleo:</strong><br>${gameState.unemployment.toFixed(1)}%
+                </div>
+                <div class="stat-box">
+                    <strong>PIB:</strong><br>$${gameState.gdp.toLocaleString()}
+                </div>
+                <div class="stat-box">
+                    <strong>Año:</strong><br>${gameState.year}
+                </div>
+                <div class="stat-box">
+                    <strong>Edificios:</strong><br>${Object.keys(gameState.buildingData).length}
+                </div>
+            `;
+            document.getElementById('statsGrid').innerHTML = statsHtml;
+            document.getElementById('statsModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function saveCity() {
+            const saveData = {
+                gameState: gameState,
+                timestamp: new Date().toLocaleString()
+            };
+            localStorage.setItem('cityBuilder_save', JSON.stringify(saveData));
+            showNotification('💾 Ciudad guardada');
+        }
+
+        function loadCity() {
+            const saved = localStorage.getItem('cityBuilder_save');
+            if (!saved) {
+                showNotification('❌ No hay partida guardada');
+                return;
+            }
+
+            const data = JSON.parse(saved);
+            Object.assign(gameState, data.gameState);
+            updateUI();
+            updateMissionUI();
+            render();
+            showNotification('📂 Ciudad cargada');
+        }
+
+        function resetCity() {
+            if (confirm('¿Reiniciar la ciudad? Perderás todo tu progreso.')) {
+                initializeGame();
+                showNotification('🔄 Ciudad reiniciada');
+            }
+        }
+
+        function zoomIn() {
+            gameState.zoomLevel = Math.min(2, gameState.zoomLevel * 1.2);
+            document.getElementById('zoomLevel').textContent = Math.round(gameState.zoomLevel * 100) + '%';
+            render();
+        }
+
+        function zoomOut() {
+            gameState.zoomLevel = Math.max(0.5, gameState.zoomLevel / 1.2);
+            document.getElementById('zoomLevel').textContent = Math.round(gameState.zoomLevel * 100) + '%';
+            render();
+        }
+
+        // ============ INICIO ============
+        initializeGame();
+
+        // Generar ingresos y envejecer la ciudad
+        setInterval(() => {
+            const income = Math.floor(gameState.population * 0.8 - gameState.traffic * 2);
+            gameState.money += income;
+            gameState.pollution = Math.max(0, gameState.pollution * 0.95);
+            gameState.traffic = Math.max(0, gameState.traffic * 0.92);
+            gameState.year++;
+            updateUI();
+            updateMissionProgress(null);
+        }, 2000);
+
+        // Tips aleatorios
+        const tips = [
+            'Las carreteras reducen el tráfico',
+            'Las turbinas limpian la contaminación',
+            'Los parques aumentan la felicidad',
+            'Más energía = más población',
+            'Equilibra industria y residencial',
+            'Las estaciones metro reducen tráfico'
+        ];
+
+        setInterval(() => {
+            const tip = tips[Math.floor(Math.random() * tips.length)];
+            document.getElementById('tipDisplay').textContent = tip;
+        }, 8000);
+
+        // Cerrar modal al hacer click fuera
+        window.onclick = function(event) {
+            const statsModal = document.getElementById('statsModal');
+            const missionModal = document.getElementById('missionModal');
+            if (event.target === statsModal) {
+                statsModal.style.display = 'none';
+            }
+            if (event.target === missionModal) {
+                missionModal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
