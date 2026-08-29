@@ -158,5 +158,27 @@
 
     console.log("Decisión aplicada y mapa sincronizado:", estadoActual);
 }
+<!-- Sección de Tienda In-App para Amazon -->
+<div id="panel-tienda-amazon" style="margin-top: 20px; padding: 15px; background: rgba(0, 0, 0, 0.7); border-radius: 8px; color: #fff; text-align: center;">
+    <h3>🛒 Tienda Ecovia (Amazon IAP)</h3>
+    <p>Mejora tu civilización y acelera tu progreso</p>
+    
+    <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+        <button onclick="comprarProductoAmazon('ecovia.pack.starter')" style="background: #2ecc71; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            Paquete de Arranque (Gemas + Recursos)
+        </button>
+        
+        <button onclick="comprarProductoAmazon('ecovia.boost.autoenergy')" style="background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            Energía Automática
+        </button>
+        
+        <button onclick="comprarProductoAmazon('ecovia.skin.biomes')" style="background: #9b59b6; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            Pase de Diseñador (Skins)
+        </button>
+    </div>
+</div>
+
+<!-- Asegurarnos de enlazar el script de la tienda -->
+<script src="tienda.js"></script>
   </body>
 </html>
