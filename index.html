@@ -1,97 +1,83 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang='es'>
 <head>
-    <meta charset="UTF-8">
-    <title>Ecovia: Prototipo de Gestión</title>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Ecovia: Civilización Viva</title>
+    <link rel='stylesheet' href='style.css'>
     <style>
-        body { margin: 0; background: #0f172a; color: #e2e8f0; font-family: sans-serif; overflow: hidden; }
-        #ui { position: absolute; top: 20px; left: 20px; background: rgba(15, 23, 42, 0.9); padding: 20px; border: 1px solid #334155; border-radius: 8px; }
-        canvas { display: block; }
-        button { display: block; width: 100%; margin-bottom: 5px; padding: 10px; cursor: pointer; }
+        body { margin: 0; padding: 0; background: #1a1a1a; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        .main-container { display: flex; gap: 40px; justify-content: center; align-items: center; }
+        .orb-card { width: 300px; height: 450px; background: #000; border: 2px solid #daa520; border-radius: 15px; box-shadow: 0 0 20px rgba(218, 165, 32, 0.3); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; box-sizing: border-box; }
+        .orb-card img { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; opacity: 0.8; }
+        .orb-label { background: rgba(0, 0, 0, 0.7); color: #daa520; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; text-transform: uppercase; position: relative; z-index: 1; border: 1px solid #daa520; }
+        
+        .main-menu-card { width: 350px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .logo-circle { width: 100px; height: 100px; border-radius: 50%; background: #000; border: 3px solid #daa520; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; box-shadow: 0 0 15px rgba(218, 165, 32, 0.5); }
+        .logo-circle img { width: 70%; }
+        .game-title { font-size: 48px; color: #0f0; text-transform: uppercase; margin: 0; letter-spacing: 2px; text-shadow: 0 0 10px #0f0; }
+        .game-subtitle { font-size: 18px; color: #fff; margin-top: 5px; margin-bottom: 40px; opacity: 0.8; }
+        
+        .menu-button { width: 100%; padding: 15px; margin-bottom: 15px; background: transparent; border: 2px solid #daa520; color: #daa520; font-size: 18px; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: all 0.3s; border-radius: 5px; box-sizing: border-box; }
+        .menu-button:hover { background: #daa520; color: #000; box-shadow: 0 0 15px rgba(218, 165, 32, 0.7); }
+        
+        /* Estilos para los selectores de idioma */
+        .language-selector { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; }
+        .lang-btn { background: transparent; border: 1px solid #daa520; color: #daa520; padding: 5px 10px; cursor: pointer; opacity: 0.7; }
+        .lang-btn:hover, .lang-btn.active { background: #daa520; color: #000; opacity: 1; }
+
+        /* Estilos integrados de la tienda Amazon */
+        #amazon-shop-ui { position: fixed; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.85); padding: 15px; border-radius: 10px; z-index: 9999; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 200px; }
+        #amazon-shop-ui h4 { margin: 0 0 10px 0; font-size: 14px; text-align: center; }
+        #amazon-shop-ui .shop-buttons { display: flex; flex-direction: column; gap: 8px; }
+        #amazon-shop-ui .shop-buttons button { width: 100%; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; color: white; }
+        #amazon-shop-ui .btn-starter { background: #2ecc71; }
+        #amazon-shop-ui .btn-energy { background: #3498db; }
+        #amazon-shop-ui .btn-skin { background: #9b59b6; }
+
     </style>
 </head>
 <body>
-    <div id="ui">
-        <h3>Ecovia: Gestión</h3>
-        <p>Dinero: $50,000 | Población: 0</p>
-        <button onclick="currentTool='ROAD'">Carreteras</button>
-        <button onclick="currentTool='HOUSE'">Residencial</button>
-        <button onclick="currentTool='FACTORY'">Industria</button>
+
+    <div class='language-selector'>
+        <button class='lang-btn active'>ES</button>
+        <button class='lang-btn'>EUS</button>
+        <button class='lang-btn'>VAL</button>
     </div>
-    <canvas id="game"></canvas>
 
-    <script>
-        const canvas = document.getElementById('game');
-        const ctx = canvas.getContext('2d');
-        let currentTool = 'ROAD';
-        const gridSize = 20;
-        const tileSize = 40;
-        const grid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+    <div class='main-container'>
+        <div class='orb-card'>
+            <img src='orbe_biosfera.png' alt='Núcleo: Biosfera Viva' onerror='this.style.display='none'; this.parentElement.style.background='#222';'>
+            <div class='orb-label'>NÚCLEO: BIOSFERA VIVA</div>
+        </div>
 
-        function draw() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (let x = 0; x < gridSize; x++) {
-                for (let y = 0; y < gridSize; y++) {
-                    // Conversión a isométrica
-                    let isoX = (x - y) * (tileSize / 2) + canvas.width / 2;
-                    let isoY = (x + y) * (tileSize / 4) + 150;
-
-                    ctx.strokeStyle = '#334155';
-                    ctx.beginPath();
-                    ctx.moveTo(isoX, isoY);
-                    ctx.lineTo(isoX + tileSize/2, isoY + tileSize/4);
-                    ctx.lineTo(isoX, isoY + tileSize/2);
-                    ctx.lineTo(isoX - tileSize/2, isoY + tileSize/4);
-                    ctx.closePath();
-                    ctx.stroke();
-
-                    // Dibujar contenido
-                    if(grid[x][y] === 1) ctx.fillStyle = '#64748b'; // Carretera
-                    else if(grid[x][y] === 2) ctx.fillStyle = '#10b981'; // Casas
-                    else continue;
-                    
-                    ctx.fill();
-                }
-            }
-        }
-
-        canvas.addEventListener('mousedown', (e) => {
-            // Lógica simplificada de detección de celda
-            let rect = canvas.getBoundingClientRect();
-            let mouseX = e.clientX - rect.left - canvas.width/2;
-            let mouseY = e.clientY - rect.top - 150;
+        <div class='main-menu-card'>
+            <div class='logo-circle'>
+                <img src='logo_ecovia.png' alt='Ecovia Logo' onerror='this.style.display='none';'>
+            </div>
+            <h1 class='game-title'>ECOVIA</h1>
+            <p class='game-subtitle'>CIVILIZACIÓN VIVA</p>
             
-            // Transformación inversa isométrica básica
-            let gridX = Math.floor((mouseX / (tileSize/2) + mouseY / (tileSize/4)) / 2);
-            let gridY = Math.floor((mouseY / (tileSize/4) - mouseX / (tileSize/2)) / 2);
-            
-            if(gridX >= 0 && gridX < gridSize && gridY >= 0 && gridY < gridSize) {
-                grid[gridX][gridY] = (currentTool === 'ROAD') ? 1 : 2;
-                draw();
-            }
-        });
+            <button class='menu-button' onclick="location.href='gestion.html'">Iniciar Partida</button>
+            <button class='menu-button'>Continuar</button>
+            <button class='menu-button'>Ajustes</button>
+        </div>
 
-        window.onresize = draw;
-        draw();
-    </script>
-
-<div style="position: fixed; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.85); padding: 15px; border-radius: 10px; z-index: 9999; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-    <h4 style="margin: 0 0 10px 0; font-size: 14px; text-align: center;">🛒 Tienda Ecovia (Amazon)</h4>
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-        <button onclick="comprarProductoAmazon('ecovia.pack.starter')" style="background: #2ecc71; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;">
-            Paquete Arranque
-        </button>
-        <button onclick="comprarProductoAmazon('ecovia.boost.autoenergy')" style="background: #3498db; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;">
-            Energía Automática
-        </button>
-        <button onclick="comprarProductoAmazon('ecovia.skin.biomes')" style="background: #9b59b6; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;">
-            Pase Diseñador
-        </button>
+        <div class='orb-card'>
+            <img src='orbe_cuantica.png' alt='Red Cuántica Central' onerror='this.style.display='none'; this.parentElement.style.background='#222';'>
+            <div class='orb-label'>RED CUÁNTICA CENTRAL</div>
+        </div>
     </div>
-</div>
-<script src="tienda.js"></script>
+
+    <div id='amazon-shop-ui'>
+        <h4>🛒 Tienda Ecovia (Amazon)</h4>
+        <div class='shop-buttons'>
+            <button class='btn-starter' onclick="comprarProductoAmazon('ecovia.pack.starter')">Paquete Arranque</button>
+            <button class='btn-energy' onclick="comprarProductoAmazon('ecovia.boost.autoenergy')">Energía Automática</button>
+            <button class='btn-skin' onclick="comprarProductoAmazon('ecovia.skin.biomes')">Pase Diseñador</button>
+        </div>
+    </div>
+
+    <script src='tienda.js'></script>
 </body>
 </html>
