@@ -77,5 +77,21 @@
         window.onresize = draw;
         draw();
     </script>
+
+<div style="position: fixed; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.85); padding: 15px; border-radius: 10px; z-index: 9999; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+    <h4 style="margin: 0 0 10px 0; font-size: 14px; text-align: center;">🛒 Tienda Ecovia (Amazon)</h4>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button onclick="comprarProductoAmazon('ecovia.pack.starter')" style="background: #2ecc71; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;">
+            Paquete Arranque
+        </button>
+        <button onclick="comprarProductoAmazon('ecovia.boost.autoenergy')" style="background: #3498db; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;">
+            Energía Automática
+        </button>
+        <button onclick="comprarProductoAmazon('ecovia.skin.biomes')" style="background: #9b59b6; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px;">
+            Pase Diseñador
+        </button>
+    </div>
+</div>
+<script src="tienda.js"></script>
 </body>
 </html>
